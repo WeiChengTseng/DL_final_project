@@ -1,8 +1,9 @@
 # DL_final_project
 
 ## Get Environemnt Binary
-- macos  
+- MACOS  
 For macos, the build binary file is in `./env/SoccerTwos.app`
 - Ubuntu  
 For Ubuntu, the build binary file is in `./env/SoccerTwos.x86_64`
-- Windows
+- Windows  
+For Windows, the build binary file is in `./env/SoccerTwos/`
