@@ -2,37 +2,53 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from gym_unity.envs import UnityEnv
+from mlagents.envs import UnityEnvironment
 
-env_name = "./env/SoccerTwos"
-multi_env = UnityEnv(env_name, worker_id=1, 
-                     use_visual=False, multiagent=True)
+train_mode = True
+env_name = "./env/SoccerTwosLearner"
 
-print(str(multi_env))
+env = UnityEnvironment(file_name=env_name, )
+
+# Set the default brain to work with
+default_brain = env.brain_names[0]
+print(env.brain_names)
+brain = env.brains[default_brain]
+
 
 
 # Reset the environment
-initial_observations = multi_env.reset()
+env_info = env.reset(train_mode=train_mode)[default_brain]
 
-if len(multi_env.observation_space.shape) == 1:
-    # Examine the initial vector observation
-    print("Agent observations look like: \n{}".format(initial_observations[0]))
-else:
-    # Examine the initial visual observation
+# Examine the state space for the default brain
+print("Agent state looks like: \n{}".format(env_info.vector_observations[0]))
+
+# Examine the observation space for the default brain
+for observation in env_info.visual_observations:
     print("Agent observations look like:")
-    if multi_env.observation_space.shape[2] == 3:
-        plt.imshow(initial_observations[0][:,:,:])
+    if observation.shape[3] == 3:
+        plt.imshow(observation[0,:,:,:])
+        plt.show()
     else:
-        plt.imshow(initial_observations[0][:,:,0])
+        plt.imshow(observation[0,:,:,0])
+        plt.show()
+
+
 
 for episode in range(10):
-    initial_observation = multi_env.reset()
+    env_info = env.reset(train_mode=train_mode)[default_brain]
     done = False
     episode_rewards = 0
     while not done:
-        actions = [multi_env.action_space.sample() for agent in range(multi_env.number_agents)]
-        observations, rewards, dones, info = multi_env.step(actions)
-        episode_rewards += np.mean(rewards)
-        done = dones[0]
+        action_size = brain.vector_action_space_size
+        if brain.vector_action_space_type == 'continuous':
+            env_info = env.step(np.random.randn(len(env_info.agents), 
+                                                action_size[0]))[default_brain]
+        else:
+            action = np.column_stack([np.random.randint(0, action_size[i], size=(len(env_info.agents))) for i in range(len(action_size))])
+            env_info = env.step(action)[default_brain]
+        episode_rewards += env_info.rewards[0]
+        done = env_info.local_done[0]
     print("Total reward this episode: {}".format(episode_rewards))
 
-multi_env.close()
+
+env.close()
