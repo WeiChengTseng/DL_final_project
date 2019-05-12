@@ -27,9 +27,9 @@ for observation in env_info.visual_observations:
         plt.show()
 
 for episode in range(10):
-    env_info_striker    = env.reset(train_mode=train_mode)[striker_brain_name]
+    env_info_striker = env.reset(train_mode=train_mode)[striker_brain_name]
     env_info_goalie = env.reset(train_mode=train_mode)[goalie_brain_name]
-    
+
     done_striker = False
     done_goalie = False
     episode_rewards = 0
@@ -38,11 +38,13 @@ for episode in range(10):
     num_agent_goalie = len(env_info_goalie.agents)
 
     while not (done_striker & done_goalie):
-        action_size_striker  = striker_brain.vector_action_space_size
-        action_size_goalie= goalie_brain.vector_action_space_size
-        
+        action_size_striker = striker_brain.vector_action_space_size
+        action_size_goalie = goalie_brain.vector_action_space_size
+
         action_striker = np.column_stack([
-            np.random.randint(0, action_size_striker[i], size=num_agent_striker)
+            np.random.randint(0,
+                              action_size_striker[i],
+                              size=num_agent_striker)
             for i in range(len(action_size_striker))
         ])
         action_goalie = np.column_stack([
