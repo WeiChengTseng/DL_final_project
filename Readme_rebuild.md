@@ -147,7 +147,14 @@ each striker and each goalie will have 112 dimension vector represent their obse
 striker: Get the ball into the opponent's goal.
 goalie : Prevent the ball from entering its own goal.
 
-###
+### Index:
+
+<img src='index.png' width=800 height=600> <br>
+from left up to right down, the indexes of red agents are 0 - 7. <br>
+from left up to right down, the indexes of blue agents are  8 -16. <br>
+
+
+
 
 
 
