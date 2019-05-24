@@ -142,6 +142,14 @@ each one dimension: <br>
 ### Observation Space
 each striker and each goalie will have 112 dimension vector represent their observations. <br>
 
+### Two Goal:
+
+striker: Get the ball into the opponent's goal.
+goalie : Prevent the ball from entering its own goal.
+
+###
+
+
 
 
 
