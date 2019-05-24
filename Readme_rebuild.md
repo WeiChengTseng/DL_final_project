@@ -146,6 +146,7 @@ each one dimension: <br>
 
 ### Observation Space
 each striker and each goalie will have 112 dimension vector represent their observations. <br>
+Vector Observation space: 112 corresponding to local 14 ray casts, each detecting 7 possible object types, along with the object's distance. Perception is in 180 degree view from front of agent.<br>
 
 ### Two Goal:
 
