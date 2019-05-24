@@ -116,7 +116,36 @@ Remember your binary file path to replace my binary file path in ```env.py```
 
 
 ### Appendix
-The Environment knowledge... 
+The Soccer Environment knowledge... 
+
+### Action Space
+#### striker :
+length: 7 <br>
+each one dimension: <br>
+[0] : not move <br>
+[1] : forward <br>
+[2] : backward <br>
+[3] : rotate Clockwise <br>
+[4] : rotate Counterclockwise <br>
+[5] : left shift <br>
+[6] : right shift <br>
+
+#### goalie :
+length :5 <br>
+each one dimension: <br>
+[0]: not move <br>
+[1]: forward <br>
+[2]: backward <br>
+[3]: left shift <br>
+[4]: right shift <br>
+
+### Observation Space
+each striker and each goalie will have 112 dimension vector represent their observations. <br>
+
+
+
+
+
 
 
 
