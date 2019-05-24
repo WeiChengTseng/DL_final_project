@@ -114,7 +114,7 @@ class SocTwoEnv():
 
 if __name__ == "__main__":
 
-    env_Path = 'env/soccer_env_different_cam.x86_64'
+    env_Path = 'env/macos/SoccerTwosLearnerBirdView.app'
     soc_env = SocTwoEnv(env_Path,worker_id=1,train_mode=True)
     print("not warning")
     for episode in range(10):
