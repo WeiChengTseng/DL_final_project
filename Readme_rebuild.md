@@ -118,6 +118,11 @@ Remember your binary file path to replace my binary file path in ```env.py```
 ### Appendix
 The Soccer Environment knowledge... 
 
+### index right version
+path : <br>
+```linux/soccer_test.x86_64``` <br>
+```windows/soccer_twos``` <br>
+
 ### Action Space
 #### striker :
 length: 7 <br>
