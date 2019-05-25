@@ -145,13 +145,55 @@ each one dimension: <br>
 [4]: right shift <br>
 
 ### Observation Space
-each striker and each goalie will have 112 dimension vector represent their observations. <br>
-Vector Observation space: 112 corresponding to local 14 ray casts, each detecting 7 possible object types, along with the object's distance. Perception is in 180 degree view from front of agent.<br>
+Each striker and each goalie will have 112 dimensions vector which represent their observation. <br>
+Vector Observation space: 112 dims corresponding to local 14 ray casts, each detecting 7 possible object types, along with the object's distance. Perception is in 180 degree view from front of agent.<br>
 
-### Two Goal:
+Ray casting : The Ray casting is the ray line that shoots with a speicified radius, and angle.In the soccer game setup, the radius is setup to 20 and angle set is [0, 45, 90, 135, 180, 110, 70] <br>
 
-striker: Get the ball into the opponent's goal.
-goalie : Prevent the ball from entering its own goal.
+First they claim they have 14 ray casts, so the angle of ray casts is one of the angle in [0, 45, 90, 135, 180, 110, 70] degrees and they have two height offset[0 1] for observation from the center front of agent. <br>
+
+Every ray casts will check if they collide with the candidates below shown, then if it collides with any candidates,the dimension of that candidate will become 1. and then append a Distance on the eighth dimension.<br>If it doesn't collide with any candidates, the seventh dimenision will become 1.(but the result didn't show the last point I mention but it mention in the source code.)<br>
+
+Example: <br>
+
+[0.         0.         0.         1.         0.         0.         0.         0.21598968 
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.         
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.         
+ <br> 0.         0.         0.         1.         0.         0.         0.         0.32554793 
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.         
+ <br> 0.         0.         0.         1.         0.         0.         0.         0.30745506 
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.         
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.        
+ <br> 0.         0.         0.         1.         0.         0.         0.         0.40604496
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.         
+ <br> 0.         0.         0.         0.         0.         0.         0.         0.        ] 
+ <br>
+
+ The above example is a 112 dimension observation vector for red agent; If the first row on fourth dimension is 1, then it means that it is in 0 degree (left), the ray line collides with wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
+ [the height offset (from the center front of agent) is 0 at the first 7 rows and the ray horizontally shoots to the height offset 0]<br>
+ 
+ The second rows doesn't have any value being 1, which means that the rast doesn't collide with any candidate in 45 degree so the distance is 0 .<br>
+ The 8th row raises 1 in the fourth dimension when the ray collides with wall and the distance is 0.3057 * 20 = 6.114 unit in 0 degree(left), <br>
+[The height offset (from the center front of agent) is 1 at the last 7 rows and the ray shoots to the height offset 0]<br>
+
+Team Blue:
+[one_hot_vector]: { ball, red_goal, blue_goal, wall, red_agent, blue_agent} (for red agent) <br>
+[one_hot_vector]: { ball, blue_goal, red_goal, wall, blue_agent, red_agent} (for blue agent) <br>
+[Distance]: { one scalar / ray_max_distance}
+
+### Reward:
+* Agent Reward Function (dependent):
+  * Striker:
+    * +1 When ball enters opponent's goal.
+    * -0.1 When ball enters own team's goal.
+    * -0.001 Existential penalty.
+  * Goalie:
+    * -1 When ball enters team's goal.
+    * +0.1 When ball enters opponents goal.
+    * +0.001 Existential bonus.
 
 ### Index:
 
