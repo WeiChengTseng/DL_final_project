@@ -120,8 +120,8 @@ The Soccer Environment knowledge...
 
 ### index right version
 path : <br>
-```linux/soccer_test.x86_64``` <br>
-```windows/soccer_twos``` <br>
+`linux/soccer_test.x86_64` <br>
+`windows/soccer_twos` <br>
 
 ### Action Space  
 #### striker:  
@@ -201,7 +201,7 @@ Example: <br>
 
 ### Index:
 
-<img src='index.png' width=800 height=600> <br>
+<img src='index.png' width=800 > <br>
 from left up to right down, the indexes of red agents are 0 - 7. <br>
 from left up to right down, the indexes of blue agents are  8 -16. <br>
 
