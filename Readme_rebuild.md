@@ -146,6 +146,7 @@ each one dimension: <br>
 
 ### Observation Space
 
+
 Each striker and each goalie will have 112 dimensions vector which represents their observation. <br>
 Vector Observation space: 112 dims corresponding to local 14 ray casts, each detecting 7 possible object types, along with the object's distance. Perception is in a 180-degree view from the front of the agent.<br>
 
@@ -154,7 +155,7 @@ Ray casting: The Ray casting is the ray line that shoots with a specified radius
 the set of candidates : <br>
 [one hot vector] { ball, red_goal, blue_goal, wall, red_agent, blue_agent} (for a red agent) <br>
 [one hot vector] { ball, blue_goal, red_goal, wall, blue_agent, red_agent} (for a blue agent) <br>
-[Distance ratio]: { (the distance when ray line collide with any candidate) / radius} <br>
+[distance ratio]: { (the distance when ray line collide with any candidate) / radius} <br>
 
 112 dimension obeservation vector can be decomposed to 14(7(7 angle of ray line) * 2(height offset)) * 8(a one hot vector which its length is 6 and append two item. )<br>
 
@@ -192,8 +193,6 @@ Example: <br>
 [the height offset from the center front of agent is 1 to the setup for last  7 rows and the ray will shoot horizonally to the height offset is 0 with specific angle]<br>
 =======
 >>>>>>> 99a366c9b9bab208bb5cbd7508bd1cca669844a5
-
-
 
 
 ### Reward:
