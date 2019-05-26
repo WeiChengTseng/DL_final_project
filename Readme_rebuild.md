@@ -178,9 +178,9 @@ Example: <br>
  <br>0.         0.         0.         0.         0.         0.         0.         0.         
  <br>0.         0.         0.         0.         0.         0.         0.         0.        ] 
  <br>
- evey row consists a one hot vector which length is 6 and two term.<br>
+ (Every row consists a one hot vector which length is 6 and two term.)<br>
 
- The example is a 112 dimension observation vector for red agent; the first row on fourth dimension being  1 means that in 0 degree (left), the ray line collide with wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
+ The example is a 112 dimension observation vector for red agent; the fourth dimension of the first row being 1 means that in 0 degree (left), the ray line collide with the wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
  [the height offset from the center front of agent is 0 on the first 7 rows and the ray will shoot to the height offset is 0]<br>
  
  The second rows didn't have any value be 1 means that in 45 degree (left but a little right side), the rast didn't collide with any candidate so the distance is 0 .<br>
