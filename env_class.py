@@ -15,9 +15,10 @@ class SocTwoEnv():
             n_str: number of agent of striker in the scene.
             n_goalie: number of agent of goalie in the scene.
         
-        ***********************************************************
+        **********************************************************
         Store "action" of each agent in act_str_hist and act_goalie_hist
         respectively.
+
         Store "Observation" or "State" of each agent in observation_str_hist
         and observation_goalie_hist respectively.
     """
@@ -113,6 +114,7 @@ class SocTwoEnv():
                 str_arg, mark which striker's history that wants to be cleared.
                 goalie_arg, mark which goalie's history that wants to be cleared.
             Clear the history of specific agents.
+
         """
         for i in str_arg:
             self.act_str_hist[i[0]] = []
@@ -120,6 +122,7 @@ class SocTwoEnv():
         for i in goalie_arg:
             self.act_goalie_hist[i[0]] = []
             self.observation_goalie_hist[i[0]] = []
+
 
     def action_map(self,action_goalie):
         """
@@ -148,12 +151,10 @@ class SocTwoEnv():
                     goal_act_index_m[15] = action_goalie[i]
         return goal_act_index_m
 
-
-
-
 if __name__ == "__main__":
 
     env_Path = r'./env/linux/soccer_test.x86_64'
+    env_Path = r'.\env\windows\soccer_easy\Unity Environment.exe'
     soc_env = SocTwoEnv(env_Path, worker_id=0, train_mode=True)
     soc_env.reset()  # Don't touch me!
     episode = 0
@@ -162,9 +163,9 @@ if __name__ == "__main__":
         action_size_goalie = soc_env.goalie_brain.vector_action_space_size
         
         # randomly generate some actions for each agent.
+        
         action_str = [0]*8+[3]*8
         action_goalie = [4]*8+[4]*6+[4]*1+[0]*1
-
 
 
         # store the action of agent in list
