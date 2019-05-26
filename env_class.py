@@ -1,7 +1,5 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import sys
-from gym_unity.envs import UnityEnv
 from mlagents.envs import UnityEnvironment
 
 SIZE_OBSERVATION = 112
@@ -25,6 +23,7 @@ class SocTwoEnv():
 
 
     """
+
     def __init__(self,
                  env_path,
                  worker_id,
@@ -99,6 +98,7 @@ class SocTwoEnv():
             Close the simulation Unity environment.
         """
         self.env.close()
+        return
 
     def done(self):
         """
@@ -109,6 +109,7 @@ class SocTwoEnv():
             self.env_info[self.striker_brain_name].local_done)
         self.done_goalie = np.array(
             self.env_info[self.goalie_brain_name].local_done)
+        return
 
     def reset_some_agents(self, str_arg, goalie_arg):
         """
@@ -125,20 +126,20 @@ class SocTwoEnv():
         for i in goalie_arg:
             self.act_goalie_hist[i[0]] = []
             self.observation_goalie_hist[i[0]] = []
-
-
+        return
 
 
 if __name__ == "__main__":
 
     env_Path = r'.\env\windows\soccer_easy\Unity Environment.exe'
+    env_Path = './env/macos/SoccerTwosLearnerBirdView.app'
     soc_env = SocTwoEnv(env_Path, worker_id=0, train_mode=True)
     soc_env.reset()  # Don't touch me!
     episode = 0
     while episode < 10:
         action_size_str = soc_env.striker_brain.vector_action_space_size
         action_size_goalie = soc_env.goalie_brain.vector_action_space_size
-        
+
         # randomly generate some actions for each agent.
         action_str = np.column_stack([
             np.random.randint(0, 7, size=16)
@@ -148,7 +149,6 @@ if __name__ == "__main__":
             np.random.randint(0, action_size_goalie[i], size=16)
             for i in range(len(action_size_goalie))
         ])
-
 
         # store the action of agent in list
         for i in range(soc_env.n_goalie):
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         for i in range(soc_env.n_str):
             (soc_env.observation_str_hist[i]).append(
                 soc_env.observation_str[i])
-        
+
         soc_env.done()
         if True in soc_env.done_goalie:
             soc_env.reward()
