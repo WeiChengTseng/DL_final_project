@@ -15,9 +15,10 @@ class SocTwoEnv():
             n_str: number of agent of striker in the scene.
             n_goalie: number of agent of goalie in the scene.
         
-        ***********************************************************
+        **********************************************************
         Store "action" of each agent in act_str_hist and act_goalie_hist
         respectively.
+
         Store "Observation" or "State" of each agent in observation_str_hist
         and observation_goalie_hist respectively.
     """
@@ -116,6 +117,7 @@ class SocTwoEnv():
                 str_arg, mark which striker's history that wants to be cleared.
                 goalie_arg, mark which goalie's history that wants to be cleared.
             Clear the history of specific agents.
+
         """
         for i in str_arg:
             self.act_str_hist[i[0]] = []
@@ -125,11 +127,45 @@ class SocTwoEnv():
             self.observation_goalie_hist[i[0]] = []
 
 
+<<<<<<< HEAD
 
 
 if __name__ == "__main__":
 
     env_Path = r'./env/linux/soccer_testv2.x86_64'
+=======
+    def action_map(self,action_goalie):
+        """
+            adjust the index order for observate on the screen conveniently
+        """
+        goal_act_index_m = [None] * len(action_goalie)
+        for i in range(len(action_str)):
+            if i < 8:
+                goal_act_index_m[i] = action_goalie[i]
+            else:
+                if i == 15:
+                    goal_act_index_m[8] = action_goalie[i]
+                if i == 14:
+                    goal_act_index_m[9] = action_goalie[i]
+                if i == 13:
+                    goal_act_index_m[11] = action_goalie[i]
+                if i == 12:
+                    goal_act_index_m[10] = action_goalie[i]
+                if i == 10:
+                    goal_act_index_m[12] = action_goalie[i]
+                if i == 11:
+                    goal_act_index_m[13] = action_goalie[i]
+                if i == 8:
+                    goal_act_index_m[14] = action_goalie[i]
+                if i == 9:
+                    goal_act_index_m[15] = action_goalie[i]
+        return goal_act_index_m
+
+if __name__ == "__main__":
+
+    env_Path = r'./env/linux/soccer_test.x86_64'
+    env_Path = r'.\env\windows\soccer_easy\Unity Environment.exe'
+>>>>>>> 99a366c9b9bab208bb5cbd7508bd1cca669844a5
     soc_env = SocTwoEnv(env_Path, worker_id=0, train_mode=True)
     soc_env.reset()  # Don't touch me!
     episode = 0
@@ -138,9 +174,14 @@ if __name__ == "__main__":
         action_size_goalie = soc_env.goalie_brain.vector_action_space_size
         
         # randomly generate some actions for each agent.
+<<<<<<< HEAD
         action_str = np.array([3]*7+[0]*1+[3]*8)
         action_goalie = np.array([4]*8+[4]*4+[0]*1+[4]*3)
-
+=======
+        
+        action_str = [0]*8+[3]*8
+        action_goalie = [4]*8+[4]*6+[4]*1+[0]*1
+>>>>>>> 99a366c9b9bab208bb5cbd7508bd1cca669844a5
 
 
         # store the action of agent in list
