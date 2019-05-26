@@ -3,11 +3,6 @@ import numpy as np
 import sys
 from gym_unity.envs import UnityEnv
 from mlagents.envs import UnityEnvironment
-import random
-
-
-
-
 
 SIZE_OBSERVATION = 112
 
@@ -32,7 +27,7 @@ class SocTwoEnv():
                  train_mode=True,
                  n_str=16,
                  n_goalie=16):
-        self.env = UnityEnvironment(file_name=env_path, worker_id=worker_id)
+        self.env = UnityEnvironment(file_name=env_path, worker_id=0)
         self.striker_brain_name, self.goalie_brain_name = self.env.brain_names
         self.striker_brain = self.env.brains[self.striker_brain_name]
         self.goalie_brain = self.env.brains[self.goalie_brain_name]
@@ -125,6 +120,7 @@ class SocTwoEnv():
         for i in goalie_arg:
             self.act_goalie_hist[i[0]] = []
             self.observation_goalie_hist[i[0]] = []
+
     def action_map(self,action_goalie):
         """
             adjust the index order for observate on the screen conveniently
@@ -151,25 +147,15 @@ class SocTwoEnv():
                 if i == 9:
                     goal_act_index_m[15] = action_goalie[i]
         return goal_act_index_m
-                
-                
-
-                
-                
-
 
 
 
 
 if __name__ == "__main__":
 
-    env_Path = 'env/linux/soccer_test.x86_64'
-    number=random.randint(0,8)
-    soc_env = SocTwoEnv(env_Path, worker_id=number, train_mode=True)
-    # print(soc_env.env.__dir__())
-
+    env_Path = r'./env/linux/soccer_test.x86_64'
+    soc_env = SocTwoEnv(env_Path, worker_id=0, train_mode=True)
     soc_env.reset()  # Don't touch me!
-
     episode = 0
     while episode < 10:
         action_size_str = soc_env.striker_brain.vector_action_space_size
@@ -180,19 +166,20 @@ if __name__ == "__main__":
         action_goalie = [4]*8+[4]*6+[4]*1+[0]*1
 
 
+
         # store the action of agent in list
-        # for i in range(soc_env.n_goalie):
-        #     (soc_env.act_goalie_hist[i]).append(action_goalie[i])
-        # for i in range(soc_env.n_str):
-        #     (soc_env.act_str_hist[i]).append(action_str[i])
+        for i in range(soc_env.n_goalie):
+            (soc_env.act_goalie_hist[i]).append(action_goalie[i])
+        for i in range(soc_env.n_str):
+            (soc_env.act_str_hist[i]).append(action_str[i])
         soc_env.step(action_str, action_goalie)
         # store the observation(state) of agent in list
-        # for i in range(soc_env.n_goalie):
-        #     (soc_env.observation_goalie_hist[i]).append(
-        #         soc_env.observation_goalie[i])
-        # for i in range(soc_env.n_str):
-        #     (soc_env.observation_str_hist[i]).append(
-        #         soc_env.observation_str[i])
+        for i in range(soc_env.n_goalie):
+            (soc_env.observation_goalie_hist[i]).append(
+                soc_env.observation_goalie[i])
+        for i in range(soc_env.n_str):
+            (soc_env.observation_str_hist[i]).append(
+                soc_env.observation_str[i])
         
         soc_env.done()
         if True in soc_env.done_goalie:
