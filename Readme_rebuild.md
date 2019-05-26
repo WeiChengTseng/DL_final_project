@@ -186,6 +186,13 @@ Example: <br>
 
  The example is a 112 dimension observation vector for red agent; the fourth dimension of the first row being 1 means that in 0 degree (left), the ray line collide with the wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
  [the height offset from the center front of agent is 0 on the first 7 rows and the ray will shoot to the height offset is 0]<br>
+<<<<<<< HEAD
+ 
+ The second rows didn't have any value be 1 means that in 45 degree (left but a little right side), the rast didn't collide with any candidate so the distance is 0 .<br>
+ The 8th row raised 1 in the fourth dimension means that in 0 degree(left), the ray collide with wall and the distance is 0.3057 * 20 = 6.114 *unit <br>
+[the height offset from the center front of agent is 1 to the setup for last  7 rows and the ray will shoot horizonally to the height offset is 0 with specific angle]<br>
+=======
+>>>>>>> 99a366c9b9bab208bb5cbd7508bd1cca669844a5
 
 
 ### Reward:
