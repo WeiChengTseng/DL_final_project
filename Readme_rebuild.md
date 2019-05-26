@@ -161,7 +161,7 @@ the set of candidates : <br>
 
 Each ray line with specific angle will check if they collide with any candidate in the set above shown. If the ray line collide with one of the candidates, for example : wall, the one hot vector will be [0,0,0,1,0,0], and the distance between the agent and the wall will be normalized(divided by 20(radius)); then,set the value(distance ratio) on 8th dimension.<br>
 
-If the ray line doesn't collide with anything candidate, the 7th dimension of that one vector will be 1.(Actually, we take out the observation vector and visualize it,it doesn't set to 1 and always be zero)<br>
+If the ray line doesn't collide with any candidate, the 7th dimension of that one vector will be 1.(Actually, we take out the observation vector and visualize it,it doesn't set to 1 and always be zero)<br>
 
 
 Example: <br>
