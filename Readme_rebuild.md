@@ -118,6 +118,11 @@ Remember your binary file path to replace my binary file path in ```env.py```
 ### Appendix
 The Soccer Environment knowledge... 
 
+### index right version
+path : <br>
+```linux/soccer_test.x86_64``` <br>
+```windows/soccer_twos``` <br>
+
 ### Action Space
 #### striker :
 length: 7 <br>
@@ -141,13 +146,58 @@ each one dimension: <br>
 
 ### Observation Space
 each striker and each goalie will have 112 dimension vector represent their observations. <br>
+Vector Observation space: 112 corresponding to local 14 ray casts, each detecting 7 possible object types, along with the object's distance. Perception is in 180 degree view from front of agent.<br>
+
+Ray casting : The Ray casting is that the ray line will shoot with a speicified radius, and angle.In the soccer game setup, the radius is setup to 20 and angle set is [0, 45, 90, 135, 180, 110, 70] <br>
+
+first they claim they have 14 ray casts, so the angle of ray casts is that [0, 45, 90, 135, 180, 110, 70] degrees and they have two height offset[1  0] for observation from the center front of agent. <br>
+
+Every ray casts will check if they collide with the candidates below shown, then if it collide,the dimension of that candidate will become 1. and then append a Distance on the eighth dimension.<br>If it didn't collide with any condidates, the seventh dimenision will become 1.(but the result didn't show the last point I mention but it mention in the source code.)<br>
+
+Example: <br>
+
+[0.         0.         0.         1.         0.         0.         0.         0.21598968 
+ <br>0.         0.         0.         0.         0.         0.         0.         0.         
+ <br>0.         0.         0.         0.         0.         0.         0.         0.
+ <br>0.         0.         0.         0.         0.         0.         0.         0.         
+ <br>0.         0.         0.         1.         0.         0.         0.         0.32554793 
+ <br>0.         0.         0.         0.         0.         0.         0.         0.
+ <br>0.         0.         0.         0.         0.         0.         0.         0.         
+ <br>0.         0.         0.         1.         0.         0.         0.         0.30745506 
+ <br>0.         0.         0.         0.         0.         0.         0.         0.
+ <br>0.         0.         0.         0.         0.         0.         0.         0.         
+ <br>0.         0.         0.         0.         0.         0.         0.         0.        
+ <br>0.         0.         0.         1.         0.         0.         0.         0.40604496
+ <br>0.         0.         0.         0.         0.         0.         0.         0.         
+ <br>0.         0.         0.         0.         0.         0.         0.         0.        ] 
+ <br>
+
+ The example is a 112 dimension observation vector for red agent; the first row on fourth dimension raised  1 means that in 0 degree (left), the ray collide with wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
+ [the height offset from the center front of agent is 0 on the first 7 rows and the ray will shoot to the height offset is 0]<br>
+ 
+ The second rows didn't have any value be 1 means that in 45 degree (left but a little right side), the rast didn't collide with any candidate so the distance is 0 .<br>
+ The 8th row raised 1 in the fourth dimension means that in 0 degree(left), the ray collide with wall and the distance is 0.3057 * 20 = 6.114 *unit <br>
+[the height offset from the center front of agent is 1 on the last  7 rows and the ray will shoot horizonally to the height offset is 0 place]<br>
+
+Team Blue:
+[one_hot_vector]: { ball, red_goal, blue_goal, wall, red_agent, blue_agent} (for red agent) <br>
+[one_hot_vector]: { ball, blue_goal, red_goal, wall, blue_agent, red_agent} (for blue agent)
+[Distance]: { one scalar / ray_max_distance}
+
 
 ### Two Goal:
 
 striker: Get the ball into the opponent's goal.
 goalie : Prevent the ball from entering its own goal.
 
-###
+### Index:
+
+<img src='index.png' width=800 height=600> <br>
+from left up to right down, the indexes of red agents are 0 - 7. <br>
+from left up to right down, the indexes of blue agents are  8 -16. <br>
+
+
+
 
 
 
