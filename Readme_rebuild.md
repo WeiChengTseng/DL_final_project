@@ -160,7 +160,7 @@ the set of candidates : <br>
 
 Each ray line with specific angle will check if they collide with any candidate in the set above shown. If the ray line collide with one of the candidates, for example : wall, the one hot vector will be [0,0,0,1,0,0], and the distance between the agent and the wall will be normalized(divided by 20(radius)); then,set the value(distance ratio) on 8th dimension.<br>
 
-If the ray line doesn't collide with anything candidate, the 7th dimension of that one vector will be 1.(Actually, we take out the observation vector and visualize it,it doesn't set to 1 and always be zero)<br>
+If the ray line doesn't collide with any candidate, the 7th dimension of that one vector will be 1.(Actually, we take out the observation vector and visualize it,it doesn't set to 1 and always be zero)<br>
 
 
 Example: <br>
@@ -185,16 +185,6 @@ Example: <br>
 
  The example is a 112 dimension observation vector for red agent; the fourth dimension of the first row being 1 means that in 0 degree (left), the ray line collide with the wall and the distance is 0.2159 * 20 = 4.318 (unit).<br>
  [the height offset from the center front of agent is 0 on the first 7 rows and the ray will shoot to the height offset is 0]<br>
-<<<<<<< HEAD
- 
- The second rows didn't have any value be 1 means that in 45 degree (left but a little right side), the rast didn't collide with any candidate so the distance is 0 .<br>
- The 8th row raised 1 in the fourth dimension means that in 0 degree(left), the ray collide with wall and the distance is 0.3057 * 20 = 6.114 *unit <br>
-[the height offset from the center front of agent is 1 to the setup for last  7 rows and the ray will shoot horizonally to the height offset is 0 with specific angle]<br>
-=======
->>>>>>> 99a366c9b9bab208bb5cbd7508bd1cca669844a5
-
-
-
 
 ### Reward:
 * Agent Reward Function (dependent):
