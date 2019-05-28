@@ -23,11 +23,15 @@ class Memory:
     
     def update_action(self, action):
         # print(list(action))
+
         self.actions += list(action)
         return
 
     def update_reward(self, reward):
-        self.rewards += list(reward)
+        if isinstance(reward, float):
+            self.actions.append(reward)
+        else:
+            self.rewards += list(reward)
         return
 
     def update_state(self, state):
@@ -40,8 +44,32 @@ class Memory:
         return
 
 class ReplayBuffer:
-    def __init__(self, num_actor):
+    def __init__(self, num_actor=16):
+        self._n_actor = num_actor
+        return
 
+class Trag:
+    def __init__(self, gamma):
+        self._gamma = gamma
+        self._state = []
+        self._action = []
+        self._reward = []
+        self._acc_reward = []
+        return
+
+    def done(self):
+        for i in reversed(self._reward):
+            self._acc_reward.append()
+        return
+
+    def push_state(self, state):
+        self._state.append(state)
+        return
+    def push_action(self, action):
+        self._action.append(action)
+        return
+    def push_reward(self, reward):
+        self._reward.append(reward)
         return
 
 
