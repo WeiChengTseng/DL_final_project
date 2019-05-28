@@ -27,6 +27,9 @@ class SocTwoEnv():
                  train_mode=True,
                  n_striker=16,
                  n_goalie=16):
+        self._striker_map = [8,0,4,2,14,10,12,6,9,1,5,3,15,11,13,7]
+        self._goalie_map = [8,0,4,2,14,10,12,6,9,1,5,3,15,11,13,7]
+
         self.env = UnityEnvironment(file_name=env_path, worker_id=0)
         self.striker_brain_name, self.goalie_brain_name = self.env.brain_names
         self.striker_brain = self.env.brains[self.striker_brain_name]
@@ -40,10 +43,8 @@ class SocTwoEnv():
         self.episode_goalie_rewards = 0
         self.n_striker = n_striker
         self.n_goalie = n_goalie
-        self.act_striker_hist = [[] for x in range(n_striker)]
-        self.act_goalie_hist = [[] for x in range(n_goalie)]
-        self.observation_striker_hist = [[] for x in range(SIZE_OBSERVATION)]
-        self.observation_goalie_hist = [[] for x in range(SIZE_OBSERVATION)]
+
+
         self.observation_striker = None
         self.observation_goalie = None
         return
@@ -60,15 +61,19 @@ class SocTwoEnv():
         self.episode_rewards = 0
         self.done_striker = [False] * 16
         self.done_goalie = [False] * 16
-        self.done_hist_striker = np.array([False] * 16)
-        self.done_hist_goalie = np.array([False] * 16)
-        return {'str': self.env_info_str, 'goalie': self.env_info_goalie}
+
+        empty_action = [0] * 16
+        return self.step(empty_action, empty_action)[0]
 
     def step(self, action_striker, action_goalie):
         """
         In each timestep, give each striker and goalie a instruction
         to do action. And then, get the current observation stored
         at observation_striker and observation_goalie.
+
+        Input:
+        - action_striker: a vector with shape [num_striker]
+        - action_goalie: a vector with shape [num_goalie]
         """
         # action_goalie = self.action_map(action_goalie)
         self.env_info = self.env.step({
@@ -79,7 +84,10 @@ class SocTwoEnv():
             self.env_info[self.striker_brain_name].vector_observations)
         self.observation_goalie = np.array(
             self.env_info[self.goalie_brain_name].vector_observations)
-        return self.env_info
+
+        return [[self.observation_striker, self.observation_goalie],
+                self.reward(),
+                self.done(), None]
 
     def reward(self):
         """
@@ -107,23 +115,8 @@ class SocTwoEnv():
             self.env_info[self.striker_brain_name].local_done)
         self.done_goalie = np.array(
             self.env_info[self.goalie_brain_name].local_done)
-        return
+        return self.done_striker, self.done_goalie
 
-    def reset_some_agents(self, striker_arg, goalie_arg):
-        """
-        params:
-            striker_arg, mark which striker's history that wants to be cleared.
-            goalie_arg, mark which goalie's history that wants to be cleared.
-        Clear the history of specific agents.
-
-        """
-        for i in striker_arg:
-            self.act_striker_hist[i[0]] = []
-            self.observation_striker_hist[i[0]] = []
-        for i in goalie_arg:
-            self.act_goalie_hist[i[0]] = []
-            self.observation_goalie_hist[i[0]] = []
-        return
 
 
 if __name__ == "__main__":
@@ -137,23 +130,12 @@ if __name__ == "__main__":
 
         # randomly generate some actions for each agent.
 
-        action_striker = [0] * 8 + [3] * 8
-        action_goalie = [4] * 8 + [4] * 6 + [4] * 1 + [0] * 1
+        action_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        action_goalie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        action_striker = np.random.randint(7, size=16, dtype=int)
+        action_goalie = np.random.randint(5, size=16, dtype=int)
 
-        # store the action of agent in list
-        for i in range(soc_env.n_goalie):
-            (soc_env.act_goalie_hist[i]).append(action_goalie[i])
-        for i in range(soc_env.n_striker):
-            (soc_env.act_striker_hist[i]).append(action_striker[i])
         soc_env.step(action_striker, action_goalie)
-
-        # store the observation(state) of agent in list
-        for i in range(soc_env.n_goalie):
-            (soc_env.observation_goalie_hist[i]).append(
-                soc_env.observation_goalie[i])
-        for i in range(soc_env.n_striker):
-            (soc_env.observation_striker_hist[i]).append(
-                soc_env.observation_striker[i])
 
         soc_env.done()
         if True in soc_env.done_goalie:
@@ -174,7 +156,7 @@ if __name__ == "__main__":
                 # print("Observation", soc_env.observation_striker_hist[i[0]])
                 # print("reword", soc_env.episode_striker_rewards[i][0])
                 pass
-            soc_env.reset_some_agents(arg_done_str, arg_done_goalie)
+            # soc_env.reset_some_agents(arg_done_str, arg_done_goalie)
             print("*" * 25)
             episode += 1
             c = 0
