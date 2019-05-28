@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torch.distributions import Categorical
 import gym
+import numpy as np
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -20,9 +21,10 @@ class Memory:
         del self.logprobs[:]
         del self.rewards[:]
         return
-    
+
     def update_action(self, action):
         # print(list(action))
+        print(action)
 
         self.actions += list(action)
         return
@@ -43,10 +45,52 @@ class Memory:
         self.logprobs += list(logprob)
         return
 
+
 class ReplayBuffer:
-    def __init__(self, num_actor=16):
+    def __init__(self, num_actor=16, gamma=0.99):
         self._n_actor = num_actor
+        self._trags = [Trag(gamma) for i in range(num_actor)]
+        self.actions = []
+        self.states = []
+        self.logprobs = []
+        self.rewards = []
         return
+
+    def clear_memory(self):
+        del self.actions[:]
+        del self.states[:]
+        del self.logprobs[:]
+        del self.rewards[:]
+        return
+
+    def update_action(self, action):
+        self.actions += list(action)
+        return
+
+    def update_reward(self, reward):
+        if isinstance(reward, float):
+            self.actions.append(reward)
+        else:
+            self.rewards += list(reward)
+        return
+
+    def update_state(self, state):
+        self.states += list(state)
+        return
+
+    def update_transition(self, state, action, reward, done):
+        for i in range(self._n_actor):
+            self._trags[i].push_transition(state[i], action[i], reward[i])
+        for i in np.argwhere(done==True):
+            self._trags.done()
+            self._trags.clear()
+            pass
+        return
+
+    def update_logprobs(self, logprob):
+        self.logprobs += list(logprob)
+        return
+
 
 class Trag:
     def __init__(self, gamma):
@@ -57,17 +101,36 @@ class Trag:
         self._acc_reward = []
         return
 
+    def clear(self):
+        del self._action[:]
+        del self._state[:]
+        # del self.logprobs[:]
+        del self._reward[:]
+        del self._acc_reward[:]
+        return
+
     def done(self):
-        for i in reversed(self._reward):
-            self._acc_reward.append()
+        self._acc_reward = []
+        discounted_reward = 0
+        for reward in reversed(self._reward):
+            discounted_reward = reward + (self.gamma * discounted_reward)
+            self._acc_reward.insert(0, discounted_reward)
+        return self._state, self._action, self._acc_reward
+
+    def push_transition(self, state, action, reward, done):
+        self._state.append(state)
+        self._action.append(action)
+        self._reward.append(reward)
         return
 
     def push_state(self, state):
         self._state.append(state)
         return
+
     def push_action(self, action):
         self._action.append(action)
         return
+
     def push_reward(self, reward):
         self._reward.append(reward)
         return

@@ -4,11 +4,11 @@ import gym
 from ppo.PPO import PPO, Memory
 from env_exp import SocTwoEnv
 
-env = gym.make('CartPole-v0')
+env = gym.make('Breakout-ram-v0')
 
 ############## Hyperparameters Striker ##############
-state_dim_striker = 4
-action_dim_striker = 2
+state_dim_striker = 128
+action_dim_striker = 3
 n_latent_var_striker = 64  # number of variables in hidden layer
 #############################################
 
@@ -53,7 +53,7 @@ for i_episode in range(1, max_episodes + 1):
         memory_striker.update_reward(reward)
 
         # update if its time
-        if timestep % update_timestep == 0:
+        if timestep+1 % update_timestep == 0:
             ppo_striker.update(memory_striker)
             memory_striker.clear_memory()
             timestep = 0
