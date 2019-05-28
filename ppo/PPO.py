@@ -12,12 +12,37 @@ class Memory:
         self.states = []
         self.logprobs = []
         self.rewards = []
+        return
 
     def clear_memory(self):
         del self.actions[:]
         del self.states[:]
         del self.logprobs[:]
         del self.rewards[:]
+        return
+    
+    def update_action(self, action):
+        # print(list(action))
+        self.actions += list(action)
+        return
+
+    def update_reward(self, reward):
+        self.rewards += list(reward)
+        return
+
+    def update_state(self, state):
+        # print(list(state))
+        self.states += list(state)
+        return
+
+    def update_logprobs(self, logprob):
+        self.logprobs += list(logprob)
+        return
+
+class ReplayBuffer:
+    def __init__(self, num_actor):
+
+        return
 
 
 class ActorCritic(nn.Module):
@@ -46,11 +71,16 @@ class ActorCritic(nn.Module):
         dist = Categorical(action_probs)
         action = dist.sample()
 
-        memory.states.append(state)
-        memory.actions.append(action)
-        memory.logprobs.append(dist.log_prob(action))
-
-        return action.item()
+        if state.dim() > 1:
+            memory.update_state(state)
+            memory.update_action(action)
+            memory.update_logprobs(dist.log_prob(action))
+            return action.numpy()
+        else:
+            memory.states.append(state)
+            memory.actions.append(action)
+            memory.logprobs.append(dist.log_prob(action))
+            return action.item()
 
     def evaluate(self, state, action):
         action_probs = self.action_layer(state)
