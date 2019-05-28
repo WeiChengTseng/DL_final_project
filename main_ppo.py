@@ -5,7 +5,7 @@ from ppo.PPO import PPO, Memory
 from env_exp import SocTwoEnv
 
 env_path = './env/macos/SoccerTwosLearnerBirdView.app'
-env = SocTwoEnv(env_path, worker_id=0, train_mode=False)
+env = SocTwoEnv(env_path, worker_id=0, train_mode=True)
 
 ############## Hyperparameters Striker ##############
 state_dim_striker = 112
@@ -24,7 +24,7 @@ max_episodes = 50000    # max training episodes
 max_timesteps = 300     # max timesteps in one episode
 solved_reward = 230     # stop training if avg_reward > solved_reward
 log_interval = 100      # print avg reward in the interval
-update_timestep = 200  # update policy every n timesteps 2000
+update_timestep = 200   # update policy every n timesteps 2000
 lr = 0.001
 gamma = 0.99            # discount factor
 K_epochs = 4            # update policy for K epochs

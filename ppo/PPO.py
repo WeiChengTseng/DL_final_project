@@ -24,7 +24,7 @@ class Memory:
 
     def update_action(self, action):
         # print(list(action))
-        print(action)
+        # print(action)
 
         self.actions += list(action)
         return
@@ -64,18 +64,35 @@ class ReplayBuffer:
         return
 
     def update_action(self, action):
-        self.actions += list(action)
+        if isinstance(action, int):
+            self._trags[0].push_action(action)
+        else:
+            for i in range(self._n_actor):
+                self._trags[i].push_action(action[i])
+
+        # self.actions += list(action)
         return
 
     def update_reward(self, reward):
+        # if isinstance(reward, float):
+        #     self.actions.append(reward)
+        # else:
+        #     self.rewards += list(reward)
         if isinstance(reward, float):
-            self.actions.append(reward)
+            self._trags[0].push_reward(reward)
         else:
-            self.rewards += list(reward)
+            for i in range(self._n_actor):
+                self._trags[i].push_reward(reward[i])
+
         return
 
     def update_state(self, state):
-        self.states += list(state)
+        if state.dim() > 2:
+            for i in range(self._n_actor):
+                self._trags[i].push_state(state[i])
+        else:
+            self._trags[0].push_state(state)
+        # self.states += list(state)
         return
 
     def update_transition(self, state, action, reward, done):
@@ -88,7 +105,13 @@ class ReplayBuffer:
         return
 
     def update_logprobs(self, logprob):
-        self.logprobs += list(logprob)
+        # self.logprobs += list(logprob)
+        if logprob.dim() > 0:
+            for i in range(self._n_actor):
+                self._trags[i].push_reward(logprob[i])
+        else:
+            self._trags[0].push_reward(logprob)
+
         return
 
 
@@ -98,6 +121,7 @@ class Trag:
         self._state = []
         self._action = []
         self._reward = []
+        self._logprob = []
         self._acc_reward = []
         return
 
@@ -125,6 +149,10 @@ class Trag:
 
     def push_state(self, state):
         self._state.append(state)
+        return
+
+    def push_logprob(self, logprob):
+        self._logprob.append(logprob)
         return
 
     def push_action(self, action):
