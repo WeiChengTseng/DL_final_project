@@ -4,6 +4,7 @@ from torch.distributions import Categorical
 import gym
 import numpy as np
 
+
 class ReplayBuffer:
     def __init__(self, num_actor=16, gamma=0.99):
         self._n_actor = num_actor
@@ -37,7 +38,12 @@ class ReplayBuffer:
                 self._trags[i].push_reward(reward[i])
 
         for i in np.argwhere(done).flatten():
-            self._trags[i].done()
+            s, l, a, r = self._trags[i].done()
+            self.states += list(s)
+            self.logprobs += list(l)
+            self.actions += list(a)
+            self.rewards += list(r)
+
             self._trags[i].clear()
 
         return
@@ -53,8 +59,12 @@ class ReplayBuffer:
     def update_transition(self, state, action, reward, done):
         for i in range(self._n_actor):
             self._trags[i].push_transition(state[i], action[i], reward[i])
-        for i in np.argwhere(done==True).flatten():
-            self._trags[i].done()
+        for i in np.argwhere(done == True).flatten():
+            s, l, a, r = self._trags[i].done()
+            self.states += list(s)
+            self.logprobs += list(l)
+            self.actions += list(a)
+            self.rewards += list(r)
             self._trags[i].clear()
             pass
         return
@@ -93,7 +103,7 @@ class Trajectory:
         for reward in reversed(self._reward):
             discounted_reward = reward + (self._gamma * discounted_reward)
             self._acc_reward.insert(0, discounted_reward)
-        return self._state, self._action, self._acc_reward
+        return self._state, self._logprob, self._action, self._acc_reward
 
     def push_transition(self, state, action, reward, done):
         self._state.append(state)

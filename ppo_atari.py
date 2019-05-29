@@ -62,7 +62,8 @@ while i_episode < (max_episodes + 1):
         #     print(i_episode)
         #     break
     i_episode += 1
-    if i_episode + 1 % update_episode == 0:
+    if (i_episode + 1) % update_episode == 0:
+        # print('update')
         ppo_striker.update(memory_striker)
         memory_striker.clear_memory()
 

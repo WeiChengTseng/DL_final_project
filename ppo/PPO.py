@@ -114,11 +114,13 @@ class PPO:
 
     def update(self, memory):
         # Monte Carlo estimate of state rewards:
-        rewards = []
-        discounted_reward = 0
-        for reward in reversed(memory.rewards):
-            discounted_reward = reward + (self.gamma * discounted_reward)
-            rewards.insert(0, discounted_reward)
+        # rewards = []
+        # discounted_reward = 0
+        # for reward in reversed(memory.rewards):
+        #     discounted_reward = reward + (self.gamma * discounted_reward)
+        #     rewards.insert(0, discounted_reward)
+        rewards = memory.rewards
+        # print(rewards)
 
         # Normalizing the rewards:
         rewards = torch.tensor(rewards).to(device)
