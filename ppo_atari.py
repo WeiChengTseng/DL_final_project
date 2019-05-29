@@ -3,6 +3,7 @@ import torch
 import gym
 from ppo.PPO import PPO, Memory, ReplayBuffer
 from env_exp import SocTwoEnv
+import pickle
 
 env = gym.make('Breakout-ram-v0')
 env.render()
@@ -14,9 +15,7 @@ n_latent_var_striker = 64  # number of variables in hidden layer
 #############################################
 
 max_episodes = 50000  # max training episodes
-max_timesteps = 300  # max timesteps in one episode
-solved_reward = 230  # stop training if avg_reward > solved_reward
-log_interval = 20  # print avg reward in the interval
+log_interval = 10  # print avg reward in the interval
 update_episode = 10  # update policy every n timesteps 2000
 lr = 0.001
 gamma = 0.99  # discount factor
@@ -37,6 +36,7 @@ ppo_striker = PPO(state_dim_striker, action_dim_striker, n_latent_var_striker,
 running_reward = 0
 avg_length = 0
 timestep = 0
+reward_history = []
 
 # training loop
 i_episode = 1
@@ -46,7 +46,6 @@ while i_episode < (max_episodes + 1):
     while True:
         timestep += 1
 
-        # Running policy_old:
         action_striker = ppo_striker.policy_old.act(state_striker,
                                                     memory_striker)
         states, reward, done, _ = env.step(action_striker)
@@ -66,14 +65,15 @@ while i_episode < (max_episodes + 1):
         ppo_striker.update(memory_striker)
         memory_striker.clear_memory()
 
-    avg_length += t
-
+    avg_length += timestep
+    timestep = 0
     # logging
     if i_episode % log_interval == 0:
         avg_length = int(avg_length / log_interval)
         running_reward = int((running_reward / log_interval))
-
+        reward_history.append(running_reward)
         print('Episode {} \t avg length: {} \t reward: {}'.format(
             i_episode, avg_length, running_reward))
         running_reward = 0
         avg_length = 0
+pickle.dumps(reward_history, open('reward_atari.pkl', 'wb'))
