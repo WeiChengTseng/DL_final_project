@@ -109,10 +109,10 @@ class PPO:
         self.device = device
 
         self.policy = ActorCritic(state_dim, action_dim,
-                                  n_latent_var).to(self.device)
+                                  n_latent_var, device).to(self.device)
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
         self.policy_old = ActorCritic(state_dim, action_dim,
-                                      n_latent_var).to(self.device)
+                                      n_latent_var, device).to(self.device)
 
         self.MseLoss = nn.MSELoss()
 
