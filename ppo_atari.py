@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 import gym
-from ppo.PPO import PPO, Memory, ReplayBuffer
+from ppo.PPO import PPO, Memory
+from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 import pickle
 
@@ -14,7 +15,7 @@ action_dim_striker = 3
 n_latent_var_striker = 64  # number of variables in hidden layer
 #############################################
 
-max_episodes = 50000  # max training episodes
+max_episodes = 5000  # max training episodes
 log_interval = 10  # print avg reward in the interval
 update_episode = 10  # update policy every n timesteps 2000
 lr = 0.001
@@ -50,7 +51,7 @@ while i_episode < (max_episodes + 1):
                                                     memory_striker)
         states, reward, done, _ = env.step(action_striker)
         env.render()
-        memory_striker.update_reward(reward)
+        memory_striker.update_reward(reward, done)
 
         running_reward += reward
         if done:

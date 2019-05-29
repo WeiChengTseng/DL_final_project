@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import gym
 from ppo.PPO import PPO, Memory
+from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 
 env_path = './env/macos/SoccerTwosFast.app'
