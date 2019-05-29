@@ -55,7 +55,6 @@ class SocTwoEnv():
         """
         self.env_info_str = self.env.reset(
             train_mode=self.train_mode)[self.striker_brain_name]
-        # print("env_info_str", self.env_info_str)
         self.env_info_goalie = self.env.reset(
             train_mode=self.train_mode)[self.goalie_brain_name]
         self.episode_rewards = 0

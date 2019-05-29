@@ -4,7 +4,7 @@ import gym
 from ppo.PPO import PPO, Memory
 from env_exp import SocTwoEnv
 
-env_path = './env/macos/SoccerTwosLearnerBirdView.app'
+env_path = './env/macos/SoccerTwosFast.app'
 env = SocTwoEnv(env_path, worker_id=0, train_mode=True)
 
 ############## Hyperparameters Striker ##############
@@ -58,7 +58,7 @@ for i_episode in range(1, max_episodes + 1):
         action_striker = ppo_striker.policy_old.act(state_striker, memory_striker)
         action_goalie = ppo_goalie.policy_old.act(state_goalie, memory_goalie)
         states, reward, done, _ = env.step(action_striker, action_goalie)
-
+        print(np.argwhere(done))
         # Saving reward:
         memory_striker.update_reward(reward[0])
         memory_goalie.update_reward(reward[1])
