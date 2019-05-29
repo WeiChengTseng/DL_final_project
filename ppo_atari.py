@@ -42,7 +42,8 @@ timestep = 0
 i_episode = 1
 while i_episode < (max_episodes + 1):
     state_striker = env.reset()
-    for t in range(max_timesteps):
+    # for t in range(max_timesteps):
+    while True:
         timestep += 1
 
         # Running policy_old:
@@ -54,14 +55,13 @@ while i_episode < (max_episodes + 1):
 
         running_reward += reward
         if done:
-            i_episode += 1
             # print(i_episode)
             break
         # if np.argwhere(done):
         #     i_episode += len(np.argwhere(done))
         #     print(i_episode)
         #     break
-
+    i_episode += 1
     if i_episode + 1 % update_episode == 0:
         ppo_striker.update(memory_striker)
         memory_striker.clear_memory()
