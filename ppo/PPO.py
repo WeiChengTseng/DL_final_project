@@ -4,7 +4,7 @@ from torch.distributions import Categorical
 import gym
 import numpy as np
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 
 class Memory:
@@ -98,17 +98,18 @@ class ActorCritic(nn.Module):
 
 class PPO:
     def __init__(self, state_dim, action_dim, n_latent_var, lr, gamma,
-                 K_epochs, eps_clip):
+                 K_epochs, eps_clip, device='cpu'):
         self.lr = lr
         self.gamma = gamma
         self.eps_clip = eps_clip
         self.K_epochs = K_epochs
+        self.device = device
 
         self.policy = ActorCritic(state_dim, action_dim,
-                                  n_latent_var).to(device)
+                                  n_latent_var).to(self.device)
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
         self.policy_old = ActorCritic(state_dim, action_dim,
-                                      n_latent_var).to(device)
+                                      n_latent_var).to(self.device)
 
         self.MseLoss = nn.MSELoss()
 
@@ -123,13 +124,13 @@ class PPO:
         # print(rewards)
 
         # Normalizing the rewards:
-        rewards = torch.tensor(rewards).to(device)
+        rewards = torch.tensor(rewards).to(self.device)
         rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-5)
 
         # convert list to tensor
-        old_states = torch.stack(memory.states).to(device).detach()
-        old_actions = torch.stack(memory.actions).to(device).detach()
-        old_logprobs = torch.stack(memory.logprobs).to(device).detach()
+        old_states = torch.stack(memory.states).to(self.device).detach()
+        old_actions = torch.stack(memory.actions).to(self.device).detach()
+        old_logprobs = torch.stack(memory.logprobs).to(self.device).detach()
 
         # Optimize policy for K epochs:
         for _ in range(self.K_epochs):

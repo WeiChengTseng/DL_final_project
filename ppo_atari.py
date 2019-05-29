@@ -5,7 +5,11 @@ from ppo.PPO import PPO, Memory
 from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 import pickle
+import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 env = gym.make('Breakout-ram-v0')
 # env.render()
 
@@ -31,7 +35,7 @@ if random_seed:
 # memory_striker = Memory()
 memory_striker = ReplayBuffer(1, gamma)
 ppo_striker = PPO(state_dim_striker, action_dim_striker, n_latent_var_striker,
-                  lr, gamma, K_epochs, eps_clip)
+                  lr, gamma, K_epochs, eps_clip, device)
 
 # logging variables
 running_reward = 0
