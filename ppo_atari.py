@@ -6,8 +6,10 @@ from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 import pickle
 import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+try:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+except:
+    pass
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 env = gym.make('Breakout-ram-v0')
