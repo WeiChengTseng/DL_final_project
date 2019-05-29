@@ -69,8 +69,8 @@ while i_episode < (max_episodes + 1):
     timestep = 0
     # logging
     if i_episode % log_interval == 0:
-        avg_length = int(avg_length / log_interval)
-        running_reward = int((running_reward / log_interval))
+        avg_length = avg_length / log_interval
+        running_reward = (running_reward / log_interval)
         reward_history.append(running_reward)
         print('Episode {} \t avg length: {} \t reward: {}'.format(
             i_episode, avg_length, running_reward))
