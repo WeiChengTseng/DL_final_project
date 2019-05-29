@@ -48,8 +48,11 @@ class Memory:
 
 
 class ActorCritic(nn.Module):
-    def __init__(self, state_dim, action_dim, n_latent_var):
+    def __init__(self, state_dim, action_dim, n_latent_var, device):
         super(ActorCritic, self).__init__()
+        self.device = device
+
+
         self.affine = nn.Linear(state_dim, n_latent_var)
 
         # actor
@@ -68,7 +71,7 @@ class ActorCritic(nn.Module):
         raise NotImplementedError
 
     def act(self, state, memory):
-        state = torch.from_numpy(state).float().to(device)
+        state = torch.from_numpy(state).float().to(self.device)
         action_probs = self.action_layer(state)
         dist = Categorical(action_probs)
         action = dist.sample()
