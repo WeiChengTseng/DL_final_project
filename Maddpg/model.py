@@ -26,7 +26,7 @@ class Goalie_Critic(nn.Module):
 
 class Striker_Critic(nn.Module):
     def __init__(self, n_agent, dim_observation = 112, dim_action = 7):
-        super(Goalie_Critic, self).__init__()
+        super(Striker_Critic, self).__init__()
         self.n_agent = n_agent
         self.dim_observation = dim_observation
         self.dim_action = dim_action
