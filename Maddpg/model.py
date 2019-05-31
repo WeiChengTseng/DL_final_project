@@ -20,7 +20,7 @@ class Critic(nn.Module):
             nn.ReLU(inplace= True),
             nn.Linear(300,1)
         )
-    # obs: batch_size * obs_dim
+
     def forward(self, obs, acts):
         result = F.relu(self.FC(obs))
         combined = torch.cat([result, acts], 1)
@@ -38,7 +38,5 @@ class Actor(nn.Module):
             nn.Linear(128,dim_action),
             nn.Tanh()
         )
-
-    # action output between -2 and 2
     def forward(self, obs):
         return self.sq(obs)
