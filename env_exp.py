@@ -32,7 +32,7 @@ class SocTwoEnv():
             8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7
         ]
         self._goalie_map = [
-            8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7
+            8, 0, 4, 2, 14, 10, 12, 6, 13, 7, 11, 3, 15, 9, 5, 1
         ]
 
         self.env = UnityEnvironment(file_name=env_path,
@@ -121,6 +121,16 @@ class SocTwoEnv():
         self.done_goalie = np.array(
             self.env_info[self.goalie_brain_name].local_done)
         return self.done_striker, self.done_goalie
+
+    def train(self):
+        self.train_mode = True
+        self.reset()
+        return
+
+    def eval(self):
+        self.train_mode = False
+        self.reset()
+        return
 
 
 if __name__ == "__main__":

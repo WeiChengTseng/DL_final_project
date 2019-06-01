@@ -1,12 +1,15 @@
 import argparse
 import torch
 import torch.optim as optim
-from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from baselines.common.vec_env.vec_frame_stack import VecFrameStack 
 
-from a2c.models import AtariCNN
+from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+from baselines.common.vec_env.vec_frame_stack import VecFrameStack
+
+from a2c.models import AtariCNN, A2C
 from a2c.envs import make_env, RenderSubprocVecEnv
-from a2c.train import train
+from a2c.train_multi import train
+
+from env_exp import SocTwoEnv
 
 parser = argparse.ArgumentParser(description='A2C (Advantage Actor-Critic)')
 parser.add_argument('env_name', type=str, help='Gym environment id')
@@ -15,7 +18,7 @@ parser.add_argument('--no-cuda',
                     help='use to disable available CUDA')
 parser.add_argument('--num-workers',
                     type=int,
-                    default=4,
+                    default=8,
                     help='number of parallel workers')
 parser.add_argument('--rollout-steps',
                     type=int,
@@ -64,19 +67,21 @@ parser.add_argument('--seed', type=int, default=0, help='random seed')
 
 args = parser.parse_args()
 
-env_fns = []
-for rank in range(args.num_workers):
-    env_fns.append(lambda: make_env(args.env_name, rank, args.seed + rank))
-if args.render:
-    venv = RenderSubprocVecEnv(env_fns, args.render_interval)
-else:
-    venv = SubprocVecEnv(env_fns)
-venv = VecFrameStack(venv, 4)
+env_path = './env/macos/SoccerTwosFast.app'
+env = SocTwoEnv(env_path, worker_id=0, train_mode=True)
 
-net = AtariCNN(venv.action_space.n)
-optimizer = optim.Adam(net.parameters(), lr=args.lr)
+# cuda = torch.cuda.is_available() and not args.no_cuda
+device = torch.device(
+    "cuda:0" if torch.cuda.is_available() and (not args.no_cuda) else "cpu")
 
-cuda = torch.cuda.is_available() and not args.no_cuda
-if cuda: net = net.cuda()
+policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
 
-train(args, net, optimizer, venv, cuda)
+optim_striker = optim.Adam(policy_striker.parameters(), lr=args.lr)
+optim_goalie = optim.Adam(policy_goalie.parameters(), lr=args.lr)
+
+# if cuda:
+#     policy_striker = policy_striker.cuda()
+#     policy_goalie = policy_goalie.cuda()
+
+train(args, policy_striker, policy_goalie, optim_striker, optim_goalie, env,
+      device)

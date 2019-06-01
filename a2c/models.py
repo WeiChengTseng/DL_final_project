@@ -122,11 +122,11 @@ class A2C(nn.Module):
         """
         super().__init__()
 
-        self.conv = nn.Sequential(nn.Conv2d(4, 32, 8, stride=4), nn.ReLU(),
-                                  nn.Conv2d(32, 64, 4, stride=2), nn.ReLU(),
-                                  nn.Conv2d(64, 64, 3, stride=1), nn.ReLU())
+        self.shared_net = nn.Sequential(nn.Linear(112, 128), nn.ReLU(),
+                                  nn.Linear(128, 64), nn.ReLU(),
+                                  nn.Linear(64, 32), nn.ReLU())
 
-        self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 512), nn.ReLU())
+        # self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 512), nn.ReLU())
 
         self.pi = nn.Linear(512, num_actions)
         self.v = nn.Linear(512, 1)
@@ -151,11 +151,10 @@ class A2C(nn.Module):
         """
         N = conv_in.size()[0]
 
-        conv_out = self.conv(conv_in).view(N, 64 * 7 * 7)
+        shared_out = self.shared_net(conv_in).view(N, -1)
 
-        fc_out = self.fc(conv_out)
 
-        pi_out = self.pi(fc_out)
-        v_out = self.v(fc_out)
+        pi_out = self.pi(shared_out)
+        v_out = self.v(shared_out)
 
         return pi_out, v_out
