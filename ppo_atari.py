@@ -69,7 +69,7 @@ while i_episode < (max_episodes + 1):
     if i_episode % log_interval == 0:
         avg_length = avg_length / log_interval
         running_reward = (running_reward / log_interval)
-        writer.add_scalar('average reward', running_reward, i_episode)
+        writer.add_scalar('average_reward', running_reward, i_episode)
         print('Episode {} \t avg length: {} \t reward: {}'.format(
             i_episode, avg_length, running_reward))
         running_reward = 0
