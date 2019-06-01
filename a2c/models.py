@@ -109,3 +109,53 @@ class AtariCNN(nn.Module):
         v_out = self.v(fc_out)
 
         return pi_out, v_out
+
+
+class A2C(nn.Module):
+    def __init__(self, num_actions):
+        """ Basic convolutional actor-critic network for Atari 2600 games
+
+        Equivalent to the network in the original DQN paper.
+
+        Args:
+        - num_actions (int): the number of available discrete actions
+        """
+        super().__init__()
+
+        self.conv = nn.Sequential(nn.Conv2d(4, 32, 8, stride=4), nn.ReLU(),
+                                  nn.Conv2d(32, 64, 4, stride=2), nn.ReLU(),
+                                  nn.Conv2d(64, 64, 3, stride=1), nn.ReLU())
+
+        self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 512), nn.ReLU())
+
+        self.pi = nn.Linear(512, num_actions)
+        self.v = nn.Linear(512, 1)
+
+        self.num_actions = num_actions
+
+        # parameter initialization
+        self.apply(atari_initializer)
+        self.pi.weight.data = ortho_weights(self.pi.weight.size(), scale=.01)
+        self.v.weight.data = ortho_weights(self.v.weight.size())
+        return
+
+    def forward(self, conv_in):
+        """ Module forward pass
+
+        Args:
+        - conv_in (Variable): convolutional input, shaped [N x 4 x 84 x 84]
+
+        Returns:
+        - pi (Variable): action probability logits, shaped [N x self.num_actions]
+        - v (Variable): value predictions, shaped [N x 1]
+        """
+        N = conv_in.size()[0]
+
+        conv_out = self.conv(conv_in).view(N, 64 * 7 * 7)
+
+        fc_out = self.fc(conv_out)
+
+        pi_out = self.pi(fc_out)
+        v_out = self.v(fc_out)
+
+        return pi_out, v_out

@@ -86,12 +86,14 @@ def train(args, net, optimizer, env, cuda):
 
             steps.append((rewards, masks, actions, policies, values))
 
-
         # print(np.array([i[0].flatten().sum() for i in steps]).mean())
-        writer.add_scalar('average_reward', np.array([i[0].flatten().sum() for i in steps]).mean(), total_steps)
+        writer.add_scalar(
+            'average_reward',
+            np.array([i[0].flatten().sum().item() for i in steps]).mean(),
+            total_steps)
         final_obs = Variable(
             torch.from_numpy(obs.transpose((0, 3, 1, 2))).float() / 255.)
-        if cuda: 
+        if cuda:
             final_obs = final_obs.cuda()
         _, final_values = net(final_obs)
         steps.append((None, None, None, None, final_values))
