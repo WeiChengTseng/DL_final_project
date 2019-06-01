@@ -26,11 +26,18 @@ class SocTwoEnv():
                  worker_id,
                  train_mode=True,
                  n_striker=16,
-                 n_goalie=16):
-        self._striker_map = [8,0,4,2,14,10,12,6,9,1,5,3,15,11,13,7]
-        self._goalie_map = [8,0,4,2,14,10,12,6,9,1,5,3,15,11,13,7]
+                 n_goalie=16,
+                 render=True):
+        self._striker_map = [
+            8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7
+        ]
+        self._goalie_map = [
+            8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7
+        ]
 
-        self.env = UnityEnvironment(file_name=env_path, worker_id=0)
+        self.env = UnityEnvironment(file_name=env_path,
+                                    worker_id=0,
+                                    no_graphics=render)
         self.striker_brain_name, self.goalie_brain_name = self.env.brain_names
         self.striker_brain = self.env.brains[self.striker_brain_name]
         self.goalie_brain = self.env.brains[self.goalie_brain_name]
@@ -43,7 +50,6 @@ class SocTwoEnv():
         self.episode_goalie_rewards = 0
         self.n_striker = n_striker
         self.n_goalie = n_goalie
-
 
         self.observation_striker = None
         self.observation_goalie = None
@@ -115,7 +121,6 @@ class SocTwoEnv():
         self.done_goalie = np.array(
             self.env_info[self.goalie_brain_name].local_done)
         return self.done_striker, self.done_goalie
-
 
 
 if __name__ == "__main__":
