@@ -37,7 +37,7 @@ class SocTwoEnv():
 
         self.env = UnityEnvironment(file_name=env_path,
                                     worker_id=0,
-                                    no_graphics=render)
+                                    no_graphics=not render)
         self.striker_brain_name, self.goalie_brain_name = self.env.brain_names
         self.striker_brain = self.env.brains[self.striker_brain_name]
         self.goalie_brain = self.env.brains[self.goalie_brain_name]

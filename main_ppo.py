@@ -21,7 +21,7 @@ n_latent_var_goalie = 64  # number of variables in hidden layer
 #############################################
 
 max_episodes = 50000  # max training episodes
-max_timesteps = 300  # max timesteps in one episode
+update_episode = 300  # max timesteps in one episode
 log_interval = 100  # print avg reward in the interval
 update_timestep = 200  # update policy every n timesteps 2000
 lr = 0.001
@@ -47,37 +47,39 @@ ppo_goalie = PPO(state_dim_goalie, action_dim_goalie, n_latent_var_goalie, lr,
 # logging variables
 running_reward = 0
 avg_length = 0
-timestep = 0
+timestep_striker = np.zeros(16, dtype=int)
+timestep_goalie = np.zeros(16, dtype=int)
+i_episode = 1
 
 # training loop
 state_striker, state_goalie = env.reset()
-for i_episode in range(1, max_episodes + 1):
-    for t in range(max_timesteps):
-        timestep += 1
+while i_episode < (max_episodes + 1):
+    while True:
+        timestep_striker += 1
+        timestep_goalie += 1
 
         # Running policy_old:
         action_striker = ppo_striker.policy_old.act(state_striker,
                                                     memory_striker)
         action_goalie = ppo_goalie.policy_old.act(state_goalie, memory_goalie)
         states, reward, done, _ = env.step(action_striker, action_goalie)
-        print(np.argwhere(done))
+
         # Saving reward:
-        memory_striker.update_reward(reward[0])
-        memory_goalie.update_reward(reward[1])
+        memory_striker.update_reward(reward[0], done[0])
+        memory_goalie.update_reward(reward[1], done[1])
 
-        # update if its time
-        if timestep % update_timestep == 0:
-            ppo_striker.update(memory_striker)
-            memory_striker.clear_memory()
+        if len(np.argwhere(done).flatten()) != 0:
+            i_episode += len(np.argwhere(done).flatten())
+            break
 
-            ppo_goalie.update(memory_goalie)
-            memory_goalie.clear_memory()
+    if (i_episode) % update_episode == 0:
+        ppo_striker.update(memory_striker)
+        ppo_goalie.update(memory_goalie)
+        memory_striker.clear_memory()
+        memory_goalie.clear_memory()
 
-            timestep = 0
-
-        running_reward += max(reward[0])
-
-    avg_length += t
+    avg_length += timestep
+    timestep = 0
 
     # logging
     if i_episode % log_interval == 0:
