@@ -59,45 +59,12 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
             for i, done in enumerate(dones[0]):
                 ep_rewards_striker[i] += rewards[0][i]
                 if done:
-                    # if args.plot_reward:
-                    #     total_steps_plt.append(total_steps)
-                    #     ep_reward_plt.append(ep_rewards[i])
                     ep_rewards_striker[i] = 0
+                    
             for i, done in enumerate(dones[1]):
                 ep_rewards_goalie[i] += rewards[1][i]
                 if done:
-                    # if args.plot_reward:
-                    #     total_steps_plt.append(total_steps)
-                    #     ep_reward_plt.append(ep_rewards[i])
                     ep_rewards_goalie[i] = 0
-
-            # if args.plot_reward:
-            #     plot_timer += args.num_workers  # time on total steps
-            #     if plot_timer == 100000:
-            #         x_means, _, y_means, y_stds = mean_std_groups(
-            #             np.array(total_steps_plt), np.array(ep_reward_plt),
-            #             args.plot_group_size)
-            #         fig = plt.figure()
-            #         fig.set_size_inches(8, 6)
-            #         plt.ticklabel_format(axis='x',
-            #                              style='sci',
-            #                              scilimits=(-2, 6))
-            #         plt.errorbar(x_means,
-            #                      y_means,
-            #                      yerr=y_stds,
-            #                      ecolor='xkcd:blue',
-            #                      fmt='xkcd:black',
-            #                      capsize=5,
-            #                      elinewidth=1.5,
-            #                      mew=1.5,
-            #                      linewidth=1.5)
-            #         plt.title('Training progress (%s)' % args.env_name)
-            #         plt.xlabel('Total steps')
-            #         plt.ylabel('Episode reward')
-            #         plt.savefig('ep_reward.png', dpi=200)
-            #         plt.clf()
-            #         plt.close()
-            #         plot_timer = 0
 
             rewards_striker = torch.from_numpy(
                 rewards[0]).float().unsqueeze(1).to(device)
@@ -129,29 +96,53 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
         steps_striker.append((None, None, None, None, final_values_striker))
         steps_goalie.append((None, None, None, None, final_values_goalie))
 
-        actions, policies, values, returns, advantages = process_rollout(
-            args, steps, device)
-        actions, policies, values, returns, advantages = process_rollout(
-            args, steps, device)
+        actions_striker, policies_striker, values_striker, returns_striker, advantages_striker = process_rollout(
+            args, steps_striker, device)
+
+        actions_goalie, policies_goalie, values_goalie, returns_goalie, advantages_goalie = process_rollout(
+            args, steps_goalie, device)
 
         # calculate action probabilities
-        probs = F.softmax(policies, dim=-1)
-        log_probs = F.log_softmax(policies, dim=-1)
-        log_action_probs = log_probs.gather(1, Variable(actions))
+        probs_striker = F.softmax(policies_striker, dim=-1)
+        probs_goalie = F.softmax(policies_goalie, dim=-1)
 
-        policy_loss = (-log_action_probs * Variable(advantages)).sum()
-        value_loss = (.5 * (values - Variable(returns))**2.).sum()
-        entropy_loss = (log_probs * probs).sum()
+        log_probs_striker = F.log_softmax(policies_striker, dim=-1)
+        log_probs_goalie = F.log_softmax(policies_goalie, dim=-1)
 
-        loss = policy_loss + value_loss * args.value_coeff + entropy_loss * args.entropy_coeff
-        loss.backward()
+        log_action_probs_striker = log_probs_striker.gather(
+            1, Variable(actions_striker))
+        log_action_probs_goalie = log_probs_goalie.gather(
+            1, Variable(actions_goalie))
 
-        nn.utils.clip_grad_norm(net.parameters(), args.grad_norm_limit)
-        optimizer.step()
-        optimizer.zero_grad()
+        policy_loss_striker = (-log_action_probs_striker *
+                               Variable(advantages_striker)).sum()
+        policy_loss_goalie = (-log_action_probs_goalie *
+                              Variable(advantages_goalie)).sum()
+
+        value_loss_striker = (
+            .5 * (values_striker - Variable(returns_striker))**2.).sum()
+        value_loss_goalie = (
+            .5 * (values_goalie - Variable(returns_goalie))**2.).sum()
+
+        entropy_loss_striker = (log_probs_striker * probs_striker).sum()
+        entropy_loss_goalie = (log_probs_goalie * probs_goalie).sum()
+
+        loss_striker = policy_loss_striker + value_loss_striker * args.value_coeff + entropy_loss_striker * args.entropy_coeff
+        loss_goalie = policy_loss_goalie + value_loss_goalie * args.value_coeff + entropy_loss_goalie * args.entropy_coeff
+
+        loss_striker.backward()
+        loss_goalie.backward()
+
+        nn.utils.clip_grad_norm(net_striker.parameters(), args.grad_norm_limit)
+        optim_striker.step()
+        optim_striker.zero_grad()
+
+        nn.utils.clip_grad_norm(net_goalie.parameters(), args.grad_norm_limit)
+        optim_goalie.step()
+        optim_goalie.zero_grad()
 
         # cut LSTM state autograd connection to previous rollout
-        steps = []
+        steps_striker, steps_goalie = [], []
 
     env.close()
     return

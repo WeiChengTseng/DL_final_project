@@ -128,8 +128,8 @@ class A2C(nn.Module):
 
         # self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 512), nn.ReLU())
 
-        self.pi = nn.Linear(512, num_actions)
-        self.v = nn.Linear(512, 1)
+        self.pi = nn.Linear(32, num_actions)
+        self.v = nn.Linear(32, 1)
 
         self.num_actions = num_actions
 
@@ -146,8 +146,9 @@ class A2C(nn.Module):
         - conv_in (Variable): convolutional input, shaped [N x 4 x 84 x 84]
 
         Returns:
-        - pi (Variable): action probability logits, shaped [N x self.num_actions]
-        - v (Variable): value predictions, shaped [N x 1]
+        - pi_out (Variable): action probability logits, 
+                             shaped [N x self.num_actions]
+        - v_out (Variable): value predictions, shaped [N x 1]
         """
         N = conv_in.size()[0]
 
