@@ -13,7 +13,7 @@ except:
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 env = gym.make('Breakout-ram-v0')
-env.render()
+# env.render()
 
 ############## Hyperparameters Striker ##############
 state_dim = 128
@@ -49,7 +49,7 @@ while i_episode < (max_episodes + 1):
         action_striker = ppo_agent.policy_old.act(state_striker,
                                                   memory_striker)
         states, reward, done, _ = env.step(action_striker)
-        env.render()
+        # env.render()
         memory_striker.update_reward(reward, done)
 
         running_reward += reward
