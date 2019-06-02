@@ -12,8 +12,14 @@ from tensorboardX import SummaryWriter
 from a2c.utils import mean_std_groups
 
 
-def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
-          device, reward_shaping=False):
+def train(args,
+          net_striker,
+          net_goalie,
+          optim_striker,
+          optim_goalie,
+          env,
+          device,
+          reward_engineering=False):
 
     save_interval = 20000
     save_path = './a2c/ckpt/a2c_step{}.pth'
@@ -45,9 +51,11 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
             obs, rewards, dones, _ = env.step(actions_striker, actions_goalie)
             obs_striker, obs_goalie = obs
 
-            if reward_shaping:
-                rewards
-                pass
+            if reward_engineering:
+                rewards = [
+                    rewards[0] + reward_shaping(obs_striker),
+                    rewards[1] + reward_shaping(obs_goalie)
+                ]
 
             # reset the LSTM state for done envs
             masks_striker = (1. - torch.from_numpy(
