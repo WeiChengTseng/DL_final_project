@@ -30,6 +30,7 @@ class SocTwoEnv():
                  render=True):
         self._striker_map = {
             'field': [8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7],
+<<<<<<< HEAD
             'team': [12, 8, 10, 9, 15, 13, 14, 11, 4, 0, 2, 1, 7, 5, 6, 3],
             'test': [0, 7, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15]
         }
@@ -50,6 +51,22 @@ class SocTwoEnv():
             'field': np.argsort(self._goalie_map['field']),
             'team': np.argsort(self._goalie_map['team']),
             'test': np.argsort(self._goalie_map['test'])
+=======
+            'team': [12, 8, 10, 9, 15, 13, 14, 11, 4, 0, 2, 1, 7, 5, 6, 3]
+        }
+        self._goalie_map = {
+            'field': [8, 0, 4, 2, 14, 10, 12, 6, 13, 7, 11, 3, 15, 9, 5, 1],
+            'team': [12, 8, 10, 9, 15, 13, 14, 11, 6, 3, 5, 1, 7, 4, 2, 0]
+        }
+
+        self._striker_inv_map = {
+            'field': np.argsort(self._striker_map['field']),
+            'team': np.argsort(self._striker_map['team'])
+        }
+        self._goalie_inv_map = {
+            'field': np.argsort(self._goalie_map['field']),
+            'team': np.argsort(self._goalie_map['team'])
+>>>>>>> e3cbf489e90ba202599f0665ad29dd4a3441c23a
         }
 
         self.env = UnityEnvironment(file_name=env_path,
@@ -111,6 +128,7 @@ class SocTwoEnv():
 
         rewards_striker, rewards_goalie = self.reward()
         dones_striker, dones_goalie = self.done()
+<<<<<<< HEAD
         if True in dones_goalie:
             print("before", dones_goalie)
         rewards_striker = rewards_striker[self._striker_inv_map['field']]
@@ -119,6 +137,16 @@ class SocTwoEnv():
         dones_goalie = dones_goalie[self._goalie_inv_map['field']]
         if True in dones_goalie:
             print("after", dones_goalie)
+=======
+
+        if order:
+            rewards_striker = rewards_striker[self._striker_inv_map[order]]
+            rewards_goalie = rewards_goalie[self._goalie_inv_map[order]]
+            dones_striker = dones_striker[self._striker_inv_map[order]]
+            dones_goalie = dones_goalie[self._goalie_inv_map[order]]
+            pass
+
+>>>>>>> e3cbf489e90ba202599f0665ad29dd4a3441c23a
         return [[self.observation_striker, self.observation_goalie],
                 [rewards_striker, rewards_goalie],
                 [dones_striker, dones_goalie], None]
@@ -163,9 +191,10 @@ class SocTwoEnv():
 
 
 if __name__ == "__main__":
-    env_path = r'env\windows\SoccerTwosBirdView\Unity Environment.exe'
+
+    env_path = './env/macos/SoccerTwosLearnerBirdView.app'
     soc_env = SocTwoEnv(env_path, worker_id=0, train_mode=False)
-    order = 'test'
+    order = 'team'
     soc_env.reset(order)  # Don't touch me!
     episode = 0
     for i in range(16):
@@ -186,4 +215,6 @@ if __name__ == "__main__":
             action_striker = np.array(action_striker)
             action_goalie = np.array(action_goalie)
             soc_env.step(action_striker, action_goalie, order)
+
     soc_env.close()
+
