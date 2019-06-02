@@ -9,6 +9,7 @@ class ReplayBuffer:
     def __init__(self, num_actor=16, gamma=0.99):
         self._n_actor = num_actor
         self._trags = [Trajectory(gamma) for i in range(num_actor)]
+        self._record = np.zeros(num_actor,dtype=bool)
         self.actions = []
         self.states = []
         self.logprobs = []
@@ -38,19 +39,16 @@ class ReplayBuffer:
         else:
             for i in range(self._n_actor):
                 self._trags[i].push_reward(reward[i])
-        
-        # print(done)
-        for i in np.argwhere(done == True).flatten():
-            s, l, a, r = self._trags[i].done()
-            self.states += list(s)
-            self.logprobs += list(l)
-            self.actions += list(a)
-            self.rewards += list(r)
-            
-            # if (len(np.argwhere(done== True).flatten())==len(done)):
-            #     done[i] = False
-            self._trags[i].clear()
 
+        for i in (np.argwhere(done == True).flatten()):
+            if i in np.argwhere(self._record == False).flatten():
+                s, l, a, r = self._trags[i].done()
+                self.states += list(s)
+                self.logprobs += list(l)
+                self.actions += list(a)
+                self.rewards += list(r)
+                self._trags[i].clear()
+                self._record[i] = True
         return
 
     def update_state(self, state):
@@ -82,6 +80,9 @@ class ReplayBuffer:
         else:
             self._trags[0].push_logprob(logprob)
 
+    def update_record(self):
+        self._record[:] = False;
+
         return
 
 
@@ -93,6 +94,7 @@ class Trajectory:
         self._reward = []
         self._logprob = []
         self._acc_reward = []
+        self.record = False
         return
 
     def clear(self):
