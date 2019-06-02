@@ -58,3 +58,4 @@ class Striker(nn.Module):
     # action output between -2 and 2
     def forward(self, obs):
         return self.sq(obs)
+
