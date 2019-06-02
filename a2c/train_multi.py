@@ -14,6 +14,9 @@ from a2c.utils import mean_std_groups
 
 def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
           device):
+
+    save_interval = 20000
+    save_path = './a2c/ckpt/a2c_step{}.pth'
     obs_striker, obs_goalie = env.reset()
 
     steps_striker, steps_goalie = [], []
@@ -131,6 +134,11 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
 
         # cut LSTM state autograd connection to previous rollout
         steps_striker, steps_goalie = [], []
+        if (total_steps % save_interval == 0):
+            torch.save({
+                'striker_a2c': net_striker.state_dict(),
+                'goalie_a2c': net_goalie.state_dict()
+            }, save_path.format(total_steps))
 
     env.close()
     return
