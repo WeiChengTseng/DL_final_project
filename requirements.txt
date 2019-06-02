@@ -3,6 +3,9 @@ mlagents
 gym_unity
 torch
 torchvision
+baselines==0.1.5
+numpy
+matplotlib
 
 {
     0: 8,
