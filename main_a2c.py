@@ -31,13 +31,13 @@ parser.add_argument('--num-workers',
                     help='number of parallel workers')
 parser.add_argument('--rollout-steps',
                     type=int,
-                    default=20,
+                    default=300,
                     help='steps per rollout')
 parser.add_argument('--total-steps',
                     type=int,
                     default=int(4e7),
                     help='total number of steps to train for')
-parser.add_argument('--lr', type=float, default=3e-4, help='learning rate')
+parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--gamma',
                     type=float,
                     default=0.99,

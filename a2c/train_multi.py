@@ -115,16 +115,16 @@ def train(args,
         log_action_probs_goalie = log_probs_goalie.gather(1, actions_goalie)
 
         policy_loss_striker = (-log_action_probs_striker *
-                               (advantages_striker)).sum()
+                               (advantages_striker)).mean()
         policy_loss_goalie = (-log_action_probs_goalie *
-                              (advantages_goalie)).sum()
+                              (advantages_goalie)).mean()
 
         value_loss_striker = (.5 * (values_striker -
-                                    (returns_striker))**2.).sum()
-        value_loss_goalie = (.5 * (values_goalie - (returns_goalie))**2.).sum()
+                                    (returns_striker))**2.).mean()
+        value_loss_goalie = (.5 * (values_goalie - (returns_goalie))**2.).mean()
 
-        entropy_loss_striker = (log_probs_striker * probs_striker).sum()
-        entropy_loss_goalie = (log_probs_goalie * probs_goalie).sum()
+        entropy_loss_striker = (log_probs_striker * probs_striker).mean()
+        entropy_loss_goalie = (log_probs_goalie * probs_goalie).mean()
 
         loss_striker = policy_loss_striker + value_loss_striker * args.value_coeff + entropy_loss_striker * args.entropy_coeff
         loss_goalie = policy_loss_goalie + value_loss_goalie * args.value_coeff + entropy_loss_goalie * args.entropy_coeff
