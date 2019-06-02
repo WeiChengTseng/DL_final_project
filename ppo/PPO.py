@@ -45,6 +45,8 @@ class Memory:
         self.logprobs += list(logprob)
         return
 
+    def sample(self, batch_size):
+        pass
 
 
 class ActorCritic(nn.Module):
