@@ -25,7 +25,6 @@ class Maddpg:
         self.episode_before_training = episode_before_training
         self.s_actor = [Striker(self.dim_obs,self.s_dim_act) for i in range(self.n_striker)]
         self.s_critic = [Critic(n_goalie+n_striker,self.dim_obs,self.s_dim_act) for i in range(self.n_striker)]
-<<<<<<< HEAD
         self.g_actors = [Goalie(self.dim_obs,self.g_dim_act) for i in range(self.n_goalie)]
 
         self.g_critic = [Critic(n_goalie+n_striker,self.dim_obs,self.g_dim_act) for i in range(self.n_goalie)]

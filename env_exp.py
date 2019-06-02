@@ -30,7 +30,6 @@ class SocTwoEnv():
                  render=True):
         self._striker_map = {
             'field': [8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7],
-<<<<<<< HEAD
             'team': [12, 8, 10, 9, 15, 13, 14, 11, 4, 0, 2, 1, 7, 5, 6, 3],
             'test': [0, 7, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15]
         }
@@ -51,6 +50,7 @@ class SocTwoEnv():
             'field': np.argsort(self._goalie_map['field']),
             'team': np.argsort(self._goalie_map['team']),
             'test': np.argsort(self._goalie_map['test'])
+        }
 
         self.env = UnityEnvironment(file_name=env_path,
                                     worker_id=0,
@@ -111,7 +111,6 @@ class SocTwoEnv():
 
         rewards_striker, rewards_goalie = self.reward()
         dones_striker, dones_goalie = self.done()
-<<<<<<< HEAD
         if True in dones_goalie:
             print("before", dones_goalie)
         rewards_striker = rewards_striker[self._striker_inv_map['field']]

@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import gym
-from ppo.PPO import PPO, Memory
+# from ppo.PPO import PPO, Memory
 from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 from MADDPG import Maddpg
@@ -38,10 +38,10 @@ if random_seed:
     torch.manual_seed(random_seed)
     env.seed(random_seed)
 
-memory_striker = Memory()
+# memory_striker = Memory()
 # Maddpg_ = Maddpg(n_striker = 16,n_goalie = 16, g_dim_act = 5, use_cuda = True, 
 #                 dim_obs = 112, s_dim_act = 7, batchSize_d2 = 1024, episode_before_training = 0)
-memory_goalie = Memory()
+# memory_goalie = Memory()
 
 # logging variables
 running_reward = 0
