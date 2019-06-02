@@ -162,8 +162,8 @@ while i_episode < (max_episodes):
         # writer.add_scalars('reward',{'striker': avg_running_reward_striker},epo)
         
 
-        running_reward_striker = 0
-        running_reward_goalie = 0
+        running_reward_striker[:] = 0
+        running_reward_goalie[:] = 0
 
         avg_length_goalie = 0
         avg_length_striker = 0
