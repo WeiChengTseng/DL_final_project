@@ -25,7 +25,7 @@ def train(args,
         print('use reward shaping')
 
     save_interval = 20000
-    save_path = './a2c/ckpt/a2c_step{}.pth'
+    save_path = './a2c/ckpt/a2cLarge_step{}.pth'
     obs_striker, obs_goalie = env.reset()
 
     steps_striker, steps_goalie = [], []

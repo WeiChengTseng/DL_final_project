@@ -25,7 +25,7 @@ parser.add_argument('--num-workers',
 #                     help='steps per rollout')
 parser.add_argument('--rollout-steps',
                     type=int,
-                    default=20,
+                    default=400,
                     help='steps per rollout')
 parser.add_argument('--total-steps',
                     type=int,

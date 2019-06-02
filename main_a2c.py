@@ -5,7 +5,7 @@ import torch.optim as optim
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.vec_frame_stack import VecFrameStack
 
-from a2c.models import AtariCNN, A2C
+from a2c.models import AtariCNN, A2C, A2CLarge
 from a2c.envs import make_env, RenderSubprocVecEnv
 from a2c.train_multi import train
 
@@ -65,9 +65,10 @@ args = parser.parse_args()
 env = SocTwoEnv(args.env_path, worker_id=0, train_mode=True, render=args.render)
 
 device = torch.device(
-    "cuda:0" if torch.cuda.is_available()else "cpu")
+    "cuda:1" if torch.cuda.is_available()else "cpu")
 
-policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
+# policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
+policy_striker, policy_goalie = A2CLarge(7).to(device), A2CLarge(5).to(device)
 
 optim_striker = optim.Adam(policy_striker.parameters(), lr=args.lr)
 optim_goalie = optim.Adam(policy_goalie.parameters(), lr=args.lr)

@@ -99,7 +99,8 @@ def train(args, net, optimizer, env, cuda):
         _, final_values = net(final_obs)
         steps.append((None, None, None, None, final_values))
 
-        # print(steps)
+        print(list(zip(*steps))[1])
+        # print(steps[-1])
 
         actions, policies, values, returns, advantages = process_rollout(
             args, steps, cuda)
@@ -153,5 +154,5 @@ def process_rollout(args, steps, cuda):
         out[t] = actions, policies, values, returns, advantages
 
     # return data as batched Tensors, Variables
-    print(list(zip(*out)))
+    # print(list(zip(*out)))
     return map(lambda x: torch.cat(x, 0), zip(*out))

@@ -127,3 +127,5 @@ pkg/
 logs/
 server/
 ckpt/
+
+*.pth
