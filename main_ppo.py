@@ -24,8 +24,8 @@ n_latent_var_goalie = 64  # number of variables in hidden layer
 #############################################
 
 max_episodes = 50000  # max training episodes
-update_episode = 400  # max timesteps in one episode
-log_interval = 100  # print avg reward in the interval
+update_episode = 320  # max timesteps in one episode
+log_interval = 320  # print avg reward in the interval
 interval = 100
 
 update_timestep = 200  # update policy every n timesteps 2000
@@ -64,6 +64,8 @@ i_episode = 0
 count = 1
 
 writer = tensorboardX.SummaryWriter()
+mask_striker = np.zeros(16,dtype=bool)
+mask_goalie = np.zeros(16,dtype=bool)
 
 
 # training loop
@@ -78,7 +80,6 @@ while i_episode < (max_episodes):
                                                     memory_striker)
         action_goalie = ppo_goalie.policy_old.act(state_goalie, memory_goalie)
         states, reward, done, _ = env.step(action_striker, action_goalie)
-        
         # Saving reward:
         memory_striker.update_reward(reward[0], done[0])
         memory_goalie.update_reward(reward[1], done[1])
@@ -86,13 +87,47 @@ while i_episode < (max_episodes):
         running_reward_striker += reward[0]
         running_reward_goalie += reward[1]
 
-        if (len(np.argwhere(done).flatten()) != 0):
-            if ((i_episode + len(np.argwhere(done).flatten())) > log_interval):
-                i_episode = log_interval
-                
-            else:
-                i_episode += len(np.argwhere(done).flatten())
+        # print("origin done_str ", done[0])
+        # print("origin done_goalie ", done[1])
+        # print()
 
+        for i in np.argwhere(mask_striker == True):
+            done[0][i] = True
+        
+        for i in np.argwhere(mask_goalie == True):
+            done[1][i] = True
+
+        # print("after done_str", done[0])
+        # print("after done_goalie", done[1])
+        # print()
+        
+        for i in np.argwhere(done[0]==True):
+            mask_striker[i] = True
+        
+        for i in np.argwhere(done[1]==True):
+            mask_goalie[i] = True
+
+        
+
+        # print("mask_striker", mask_striker)
+        # print("mask_goalie", mask_goalie)
+        # print()
+        # print("done_striker", done[0])
+        # print("done_goalie", done[1])
+
+        # print("=============================")
+        
+        if (len(np.argwhere(done[0]).flatten())+ len(np.argwhere(done[1]).flatten()) == 32):
+            i_episode += 32
+            memory_goalie.update_record()
+            memory_striker.update_record()
+            
+            mask_striker[:] = False
+            mask_goalie[:] = False
+            count +=1
+            print(count)
+            # print("flip str: " ,mask_striker)
+            # print("flip goalie: ", mask_goalie)
             break
 
     if (i_episode) % update_episode == 0:
@@ -104,19 +139,18 @@ while i_episode < (max_episodes):
     avg_length_goalie += timestep_goalie
     avg_length_striker += timestep_striker
 
-    timestep_goalie = 0
-    timestep_striker = 0
+    timestep_goalie[:] = 0
+    timestep_striker[:] = 0
 
     # logging
+    print("episode: ",i_episode)
+    
     if ((i_episode % log_interval) == 0):
-        avg_length_goalie = np.sum(avg_length_goalie) / (
-            i_episode - i_old) / 16
-        avg_length_striker = np.sum(avg_length_striker) / (
-            i_episode - i_old) / 16
-        avg_running_reward_striker = np.sum(running_reward_striker) / (
-            i_episode - i_old) / 16
-        avg_running_reward_goalie = np.sum(running_reward_goalie) / (
-            i_episode - i_old) / 16
+        count = 1
+        avg_length_goalie = np.sum(avg_length_goalie) / log_interval / 16
+        avg_length_striker = np.sum(avg_length_striker) / log_interval /16
+        avg_running_reward_striker = np.sum(running_reward_striker) / log_interval /16
+        avg_running_reward_goalie = np.sum(running_reward_goalie) /log_interval /16
 
         print('Episode {} \t avg striker length: {} \t reward: {}'.format(
             i_episode, avg_length_striker, avg_running_reward_striker))
@@ -128,8 +162,8 @@ while i_episode < (max_episodes):
         # writer.add_scalars('reward',{'striker': avg_running_reward_striker},epo)
         
 
-        running_reward_striker = 0
-        running_reward_goalie = 0
+        running_reward_striker[:] = 0
+        running_reward_goalie[:] = 0
 
         avg_length_goalie = 0
         avg_length_striker = 0
@@ -138,6 +172,3 @@ while i_episode < (max_episodes):
                    './PPO_striker{}_{}.pth'.format('SoccerTwos',i_episode))
         torch.save(ppo_goalie.policy.state_dict(),
                    './PPO_goalie{}_{}.pth'.format('SoccerTwos',i_episode))
-
-        log_interval += interval
-        i_old = i_episode
