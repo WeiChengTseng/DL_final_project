@@ -2,8 +2,8 @@ import argparse
 import torch
 import torch.optim as optim
 
-from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from baselines.common.vec_env.vec_frame_stack import VecFrameStack
+# from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+# from baselines.common.vec_env.vec_frame_stack import VecFrameStack
 
 from a2c.models import AtariCNN, A2C, A2CLarge
 from a2c.envs import make_env, RenderSubprocVecEnv
