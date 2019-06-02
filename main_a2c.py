@@ -1,6 +1,7 @@
 import argparse
 import torch
 import torch.optim as optim
+import os
 
 # from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 # from baselines.common.vec_env.vec_frame_stack import VecFrameStack
@@ -64,8 +65,9 @@ args = parser.parse_args()
 # env_path = './env/macos/SoccerTwosFast.app'
 env = SocTwoEnv(args.env_path, worker_id=0, train_mode=True, render=args.render)
 
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 device = torch.device(
-    "cuda:1" if torch.cuda.is_available()else "cpu")
+    "cuda:0" if torch.cuda.is_available()else "cpu")
 
 # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
 policy_striker, policy_goalie = A2CLarge(7).to(device), A2CLarge(5).to(device)
