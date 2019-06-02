@@ -6,7 +6,7 @@ import torch.optim as optim
 # from baselines.common.vec_env.vec_frame_stack import VecFrameStack
 
 from a2c.models import AtariCNN, A2C, A2CLarge
-from a2c.envs import make_env, RenderSubprocVecEnv
+# from a2c.envs import make_env, RenderSubprocVecEnv
 from a2c.train_multi import train
 
 from env_exp import SocTwoEnv
