@@ -162,6 +162,35 @@ def process_rollout(args, steps, device):
     return map(lambda x: torch.cat(x, 0), zip(*out))
 
 
-def eval_with_random_agent(net_striker, net_goalie, env):
-    obs_striker, obs_goalie = env.reset()
+def eval_with_random_agent(net_striker, net_goalie, env, device, eval_epsoid=10):
+    obs_striker, obs_goalie = env.reset('team')
+    epsoid = 0
+    while epsoid < eval_epsoid:
+        obs_striker = Variable(
+            torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = Variable(
+            torch.from_numpy(obs_goalie).float()).to(device)
+
+        policies_striker, values_striker = net_striker(obs_striker)
+        policies_goalie, values_goalie = net_goalie(obs_goalie)
+
+        probs_striker = F.softmax(policies_striker, dim=-1)
+        probs_goalie = F.softmax(policies_goalie, dim=-1)
+
+        actions_striker = probs_striker.multinomial(1).data
+        actions_goalie = probs_goalie.multinomial(1).data
+
+        # gather env data, reset done envs and update their obs
+        # actions_striker = actions_striker[]
+        obs, rewards, dones, _ = env.step(actions_striker, actions_goalie, 'team')
+        obs_striker, obs_goalie = obs
+
+        rewards_striker = torch.from_numpy(
+            rewards[0]).float().unsqueeze(1).to(device)
+        rewards_goalie = torch.from_numpy(
+            rewards[1]).float().unsqueeze(1).to(device)
+
+        for i in np.argwhere(dones[0]).flatten():
+            epsoid += 1
+            pass
     return

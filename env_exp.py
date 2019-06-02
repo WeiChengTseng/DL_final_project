@@ -57,7 +57,7 @@ class SocTwoEnv():
         self.observation_goalie = None
         return
 
-    def reset(self):
+    def reset(self, order=None):
         """
         Reset the all environments and agents.
         """
@@ -70,7 +70,7 @@ class SocTwoEnv():
         self.done_goalie = [False] * 16
 
         empty_action = [0] * 16
-        return self.step(empty_action, empty_action)[0]
+        return self.step(empty_action, empty_action, order)[0]
 
     def step(self, action_striker, action_goalie, order=None):
         """
@@ -95,9 +95,19 @@ class SocTwoEnv():
         self.observation_goalie = np.array(
             self.env_info[self.goalie_brain_name].vector_observations)
 
+        rewards_striker, rewards_goalie = self.reward()
+        dones_striker, dones_goalie = self.done()
+
+        if order:
+            rewards_striker = rewards_striker[self._striker_map[order]]
+            rewards_goalie = rewards_goalie[self._goalie_map[order]]
+            dones_striker = dones_striker[self._striker_map[order]]
+            dones_goalie = dones_goalie[self._goalie_map[order]]
+            pass
+
         return [[self.observation_striker, self.observation_goalie],
-                self.reward(),
-                self.done(), None]
+                [rewards_striker, rewards_goalie],
+                [dones_striker, dones_goalie], None]
 
     def reward(self):
         """
