@@ -5,6 +5,7 @@ import gym
 import numpy as np
 import random
 
+
 class ActorCritic(nn.Module):
     def __init__(self, state_dim, action_dim, n_latent_var, device):
         super(ActorCritic, self).__init__()

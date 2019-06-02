@@ -125,3 +125,7 @@ dmypy.json
 .vscode
 pkg/
 logs/
+server/
+ckpt/
+
+*.pth
