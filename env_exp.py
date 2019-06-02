@@ -111,14 +111,14 @@ class SocTwoEnv():
 
         rewards_striker, rewards_goalie = self.reward()
         dones_striker, dones_goalie = self.done()
-        if True in dones_goalie:
-            print("before", dones_goalie)
+        # if True in dones_goalie:
+        #     print("before", dones_goalie)
         rewards_striker = rewards_striker[self._striker_inv_map['field']]
         rewards_goalie = rewards_goalie[self._goalie_inv_map['field']]
         dones_striker = dones_striker[self._striker_inv_map['field']]
         dones_goalie = dones_goalie[self._goalie_inv_map['field']]
-        if True in dones_goalie:
-            print("after", dones_goalie)
+        # if True in dones_goalie:
+        #     print("after", dones_goalie)
 
         return [[self.observation_striker, self.observation_goalie],
                 [rewards_striker, rewards_goalie],

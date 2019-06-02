@@ -5,7 +5,7 @@ import gym
 from ppo.utils import ReplayBuffer
 from env_exp import SocTwoEnv
 from MADDPG import Maddpg
-# from memory import ReplayMemory
+from memory import ReplayMemory
 env_path = r'env\windows\SoccerTwosBirdView\Unity Environment.exe'
 
 env = SocTwoEnv(env_path, worker_id=2, train_mode=True)
@@ -47,59 +47,62 @@ if random_seed:
 running_reward = 0
 avg_length = 0
 timestep = 0
-capacity = 1e7
+capacity = int(1e7)
 def main():
 # training loop
     # s_memory = ReplayMemory(capacity)
-    # g_memory = ReplayMemory(capacity)
+    memory = ReplayMemory(capacity)
     state_striker, state_goalie = env.reset()
     episode = 0
+    prev_state = [np.zeros([16, 112]), np.zeros([16, 112])]
+    prev_reward = [np.zeros([16]), np.zeros([16])]
+    prev_action_striker = np.zeros([16])
+    prev_action_goalie = np.zeros([16])
     while episode < max_episodes:
-        actions_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        actions_goalie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-        actions_striker[0] = np.random.randint(7, dtype=int)
-        actions_goalie[0] = np.random.randint(5, dtype=int)
-        actions_striker[1] = np.random.randint(7, dtype=int)
-        actions_goalie[1] = np.random.randint(5, dtype=int)
 
         action_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         action_goalie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        action_striker[2] = np.random.randint(7)
-        action_striker[3] = np.random.randint(7)
-        action_goalie[2] = np.random.randint(5)
-        action_goalie[3] = np.random.randint(5)
+        action_striker = np.random.randint(7, size = [16])
+        action_goalie = np.random.randint(5, size = [16])
         action_striker = np.array(action_striker)
         action_goalie = np.array(action_goalie)
         
         states, reward, done, _ = env.step(action_striker, action_goalie, order = "field")
+        memory.push(prev_state, states, [prev_action_striker, prev_action_goalie], prev_reward)
+        arg_done = np.argwhere(done[0] == True)
+        prev_state[0][arg_done] = np.zeros([112])
+        prev_state[1][arg_done] = np.zeros([112])
+        prev_reward[0][arg_done] = 0
+        prev_reward[1][arg_done] = 0
+        prev_action_striker[arg_done] = 0
+        prev_action_goalie[arg_done] = 0
+        states, reward, prev_action_striker, prev_action_goalie = prev_state, reward, action_striker, action_goalie
         
-        done_str, done_goa = done
         if True in env.done_goalie:
-            print("episode: ", episode, "*" * 10)
-            # print(reward)
-            arg_done_goalie = np.argwhere(done_goa == True)
-            if len(arg_done_goalie) == 2:
-                print("arg_done_goalie", arg_done_goalie)
+        #     print("episode: ", episode, "*" * 10)
+        #     # print(reward)
+        #     # arg_done_goalie = np.argwhere(done_goa == True)
+        #     if len(arg_done_goalie) == 2:
+        #         print("arg_done_goalie", arg_done_goalie)
 
-            for i in arg_done_goalie:
-                # print("goalie %d"%(i[0]))
-                # print("action", env.act_goalie_hist[i[0]])
-                # print("Observation", env.observation_goalie_hist[i[0]])
-                # print("reword", env.episode_goalie_rewards[i][0])
-                pass
-            arg_done_str = np.argwhere(done_goa == True)
-            if len(arg_done_goalie) == 2:
-                print("arg_done_str", arg_done_str)
+        #     for i in arg_done_goalie:
+        #         # print("goalie %d"%(i[0]))
+        #         # print("action", env.act_goalie_hist[i[0]])
+        #         # print("Observation", env.observation_goalie_hist[i[0]])
+        #         # print("reword", env.episode_goalie_rewards[i][0])
+        #         pass
+        #     arg_done_str = np.argwhere(done_goa == True)
+        #     if len(arg_done_goalie) == 2:
+        #         print("arg_done_str", arg_done_str)
 
-            for i in arg_done_str:
-                # print("str %d"%(i[0]))
-                # print("action", env.act_striker_hist[i[0]])
-                # print("Observation", env.observation_striker_hist[i[0]])
-                # print("reword", env.episode_striker_rewards[i][0])
-                pass
-            # env.reset_some_agents(arg_done_str, arg_done_goalie)
+        #     for i in arg_done_str:
+        #         # print("str %d"%(i[0]))
+        #         # print("action", env.act_striker_hist[i[0]])
+        #         # print("Observation", env.observation_striker_hist[i[0]])
+        #         # print("reword", env.episode_striker_rewards[i][0])
+        #         pass
+        #     # env.reset_some_agents(arg_done_str, arg_done_goalie)
             episode += 1
 if __name__ == '__main__':
     main()
