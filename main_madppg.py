@@ -54,10 +54,14 @@ def main():
     memory = ReplayMemory(capacity)
     state_striker, state_goalie = env.reset()
     episode = 0
-    prev_state = [np.zeros([16, 112]), np.zeros([16, 112])]
-    prev_reward = [np.zeros([16]), np.zeros([16])]
+    prev_states = np.concatenate([np.zeros([16, 112]), np.zeros([16, 112])]).reshape(-1, 4, 112)
+    prev_reward = np.concatenate([np.zeros([16]), np.zeros([16])]).reshape(-1, 4, 1)
     prev_action_striker = np.zeros([16])
     prev_action_goalie = np.zeros([16])
+    prev_action_striker = prev_action_striker.reshape(-1, 2, 1) 
+    prev_action_goalie = prev_action_goalie.reshape(-1, 2, 1) 
+    prev_action = np.concatenate([prev_action_striker, prev_action_goalie], axis=1)    
+
     while episode < max_episodes:
 
         action_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -69,16 +73,47 @@ def main():
         action_goalie = np.array(action_goalie)
         
         states, reward, done, _ = env.step(action_striker, action_goalie, order = "field")
-        memory.push(prev_state, states, [prev_action_striker, prev_action_goalie], prev_reward)
+        # print(states[0].shape)
+        # states[0] = states[0].reshape(2, -1, 112)
+        # print(states[0].shape)
+        # states[1] = states[1].reshape(2, -1, 112)
+        # states = np.vstack([states[0], states[1]])
+        # reward[0] = reward[0].reshape(2, -1)
+        # reward[1] = reward[1].reshape(2, -1)
+        # reward = np.vstack([reward[0], reward[1]])
+        # done[0] = done[0].reshape(2, -1)
+        # done[1] = done[1].reshape(2, -1)
+        # done = np.vstack([done[0], done[1]])
+        # print(states.shape)
+        # print(reward.shape)
+        # print(done.shape)
+        # exit()
+        memory.push(prev_states, states, prev_action, prev_reward)
+
         arg_done = np.argwhere(done[0] == True)
-        prev_state[0][arg_done] = np.zeros([112])
-        prev_state[1][arg_done] = np.zeros([112])
+        prev_states[0][arg_done] = np.zeros([112])
+        prev_states[1][arg_done] = np.zeros([112])
         prev_reward[0][arg_done] = 0
         prev_reward[1][arg_done] = 0
         prev_action_striker[arg_done] = 0
         prev_action_goalie[arg_done] = 0
-        states, reward, prev_action_striker, prev_action_goalie = prev_state, reward, action_striker, action_goalie
-        
+
+
+        prev_states, prev_reward, prev_action_striker, prev_action_goalie = states, reward, action_striker, action_goalie
+        prev_states[0] = prev_states[0].reshape(-1, 2, 112)
+        prev_states[1] = prev_states[1].reshape(-1, 2, 112)
+        prev_states = np.concatenate([prev_states[0], prev_states[1]], axis=1)
+
+
+        prev_reward[0] = prev_reward[0].reshape(-1, 2, 1)
+        prev_reward[1] = prev_reward[1].reshape(-1, 2, 1)
+        prev_reward = np.concatenate([prev_reward[0], prev_reward[1]], axis=1)
+
+        prev_action_striker = prev_action_striker.reshape(-1, 2, 1) 
+        prev_action_goalie = prev_action_goalie.reshape(-1, 2, 1) 
+        prev_action = np.concatenate([prev_action_striker, prev_action_goalie], axis=1)    
+
+     
         if True in env.done_goalie:
         #     print("episode: ", episode, "*" * 10)
         #     # print(reward)
