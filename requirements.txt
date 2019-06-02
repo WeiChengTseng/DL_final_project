@@ -6,6 +6,8 @@ torchvision
 baselines==0.1.5
 numpy
 matplotlib
+tensorboardX
+tensorboard
 
 {
     0: 8,

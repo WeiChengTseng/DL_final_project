@@ -13,6 +13,10 @@ from env_exp import SocTwoEnv
 
 parser = argparse.ArgumentParser(description='A2C (Advantage Actor-Critic)')
 
+parser.add_argument('--env_path',
+                    type=str,
+                    default='./env/macos/SoccerTwosFast.app',
+                    help='path to the environment binary')
 parser.add_argument('--num-workers',
                     type=int,
                     default=16,
@@ -49,8 +53,8 @@ parser.add_argument('--grad_norm_limit',
 
 args = parser.parse_args()
 
-env_path = './env/macos/SoccerTwosFast.app'
-env = SocTwoEnv(env_path, worker_id=0, train_mode=True)
+# env_path = './env/macos/SoccerTwosFast.app'
+env = SocTwoEnv(args.env_path, worker_id=0, train_mode=True)
 
 device = torch.device(
     "cuda:0" if torch.cuda.is_available()else "cpu")

@@ -31,10 +31,12 @@ class SocTwoEnv():
         self._striker_map = {
             'field': [8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7],
             'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 1, 3, 11, 7]
+            # 'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 1, 3, 11, 7]
         }
         self._goalie_map = {
             'field': [8, 0, 4, 2, 14, 10, 12, 6, 13, 7, 11, 3, 15, 9, 5, 1],
             'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 7, 3, 9, 1]
+            # 'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 7, 3, 9, 1]
         }
 
         self.env = UnityEnvironment(file_name=env_path,
@@ -69,7 +71,7 @@ class SocTwoEnv():
         self.done_striker = [False] * 16
         self.done_goalie = [False] * 16
 
-        empty_action = [0] * 16
+        empty_action = np.zeros(16)
         return self.step(empty_action, empty_action, order)[0]
 
     def step(self, action_striker, action_goalie, order=None):
@@ -150,43 +152,26 @@ class SocTwoEnv():
 
 if __name__ == "__main__":
     env_path = './env/macos/SoccerTwosLearnerBirdView.app'
-    soc_env = SocTwoEnv(env_path, worker_id=0, train_mode=True)
-    soc_env.reset()  # Don't touch me!
+    soc_env = SocTwoEnv(env_path, worker_id=0, train_mode=False)
+    order = None
+    soc_env.reset(order)  # Don't touch me!
     episode = 0
-    while episode < 10:
-        action_size_str = soc_env.striker_brain.vector_action_space_size
-        action_size_goalie = soc_env.goalie_brain.vector_action_space_size
+    for i in range(16):
+        for _ in range(40):
+            action_size_str = soc_env.striker_brain.vector_action_space_size
+            action_size_goalie = soc_env.goalie_brain.vector_action_space_size
 
-        # randomly generate some actions for each agent.
+            # randomly generate some actions for each agent.
 
-        action_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        action_goalie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        action_striker = np.random.randint(7, size=16, dtype=int)
-        action_goalie = np.random.randint(5, size=16, dtype=int)
+            action_striker = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            action_goalie = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            # action_striker = np.random.randint(7, size=16, dtype=int)
+            # action_goalie = np.random.randint(5, size=16, dtype=int)
 
-        soc_env.step(action_striker, action_goalie)
+            action_striker[i] = np.random.randint(7)
+            # action_goalie[i] = np.random.randint(5)
 
-        soc_env.done()
-        if True in soc_env.done_goalie:
-            soc_env.reward()
-            print("episode: ", episode, "*" * 10)
-            arg_done_goalie = np.argwhere(soc_env.done_goalie == True)
-            for i in arg_done_goalie:
-                # print("goalie %d"%(i[0]))
-                # print("action", soc_env.act_goalie_hist[i[0]])
-                # print("Observation", soc_env.observation_goalie_hist[i[0]])
-                # print("reword", soc_env.episode_goalie_rewards[i][0])
-                pass
-
-            arg_done_str = np.argwhere(soc_env.done_striker == True)
-            for i in arg_done_str:
-                # print("str %d"%(i[0]))
-                # print("action", soc_env.act_striker_hist[i[0]])
-                # print("Observation", soc_env.observation_striker_hist[i[0]])
-                # print("reword", soc_env.episode_striker_rewards[i][0])
-                pass
-            # soc_env.reset_some_agents(arg_done_str, arg_done_goalie)
-            print("*" * 25)
-            episode += 1
-            c = 0
+            action_striker = np.array(action_striker)
+            action_goalie = np.array(action_goalie)
+            soc_env.step(action_striker, action_goalie, order)
     soc_env.close()
