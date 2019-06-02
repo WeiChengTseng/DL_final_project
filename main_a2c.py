@@ -21,6 +21,10 @@ parser.add_argument('--render',
                     type=bool,
                     default=False,
                     help='whether to render enviroment')
+parser.add_argument('--reward_shaping',
+                    type=bool,
+                    default=False,
+                    help='whether to use reward shaping')
 parser.add_argument('--num-workers',
                     type=int,
                     default=16,
@@ -69,4 +73,4 @@ optim_striker = optim.Adam(policy_striker.parameters(), lr=args.lr)
 optim_goalie = optim.Adam(policy_goalie.parameters(), lr=args.lr)
 
 train(args, policy_striker, policy_goalie, optim_striker, optim_goalie, env,
-      device)
+      device, args.reward_shaping)
