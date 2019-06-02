@@ -68,6 +68,7 @@ env = SocTwoEnv(args.env_path, worker_id=0, train_mode=True, render=args.render)
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 device = torch.device(
     "cuda:0" if torch.cuda.is_available()else "cpu")
+print(device)
 
 # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
 policy_striker, policy_goalie = A2CLarge(7).to(device), A2CLarge(5).to(device)
