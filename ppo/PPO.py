@@ -3,47 +3,7 @@ import torch.nn as nn
 from torch.distributions import Categorical
 import gym
 import numpy as np
-
-
-
-# class Memory:
-#     def __init__(self):
-#         self.actions = []
-#         self.states = []
-#         self.logprobs = []
-#         self.rewards = []
-#         return
-
-#     def clear_memory(self):
-#         del self.actions[:]
-#         del self.states[:]
-#         del self.logprobs[:]
-#         del self.rewards[:]
-#         return
-
-#     def update_action(self, action):
-#         # print(list(action))
-#         # print(action)
-
-#         self.actions += list(action)
-#         return
-
-#     def update_reward(self, reward):
-#         if isinstance(reward, float):
-#             self.actions.append(reward)
-#         else:
-#             self.rewards += list(reward)
-#         return
-
-#     def update_state(self, state):
-#         self.states += list(state)
-#         print(self.states)
-#         return
-
-#     def update_logprobs(self, logprob):
-#         self.logprobs += list(logprob)
-#         print(self.logprobs)
-#         return
+import random
 
 
 class ActorCritic(nn.Module):
@@ -67,6 +27,22 @@ class ActorCritic(nn.Module):
 
     def forward(self):
         raise NotImplementedError
+    
+    def act_test(self, state,action_dim):
+
+        model_state = torch.from_numpy(state[:8]).float().to(self.device)
+        self.action_layer=self.action_layer.eval()
+        model_action = self.action_layer(model_state)
+        index = torch.argmax(model_action, 1)
+
+        model_index = index.detach().numpy()
+
+        random_action = np.random.randint(0, action_dim,size=8)
+
+        actions = np.concatenate((model_index, random_action),axis=None)
+        self.action_layer = self.action_layer.train()
+        return actions
+
 
     def act(self, state, memory):
         state = torch.from_numpy(state).float().to(self.device)
@@ -78,7 +54,6 @@ class ActorCritic(nn.Module):
             memory.update_state(state)
             memory.update_action(action)
             memory.update_logprobs(dist.log_prob(action))
-            # print(action.numpy())
             return action.numpy()
         else:
             memory.states.append(state)
