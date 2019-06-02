@@ -54,6 +54,7 @@ def train(args,
             obs, rewards, dones, _ = env.step(actions_striker, actions_goalie)
             obs_striker, obs_goalie = obs
 
+            # print(rewards )
             if reward_engineering:
                 rewards = [
                     rewards[0] + reward_shaping(obs_striker),
@@ -180,8 +181,10 @@ def process_rollout(args, steps, device):
 
 
 def reward_shaping(states, additional_value=1e-3):
+    # print(states)
     ball = np.arange(14, dtype=int) * 8
-    additional_reward = np.zeros(states.size()[0])
+    additional_reward = np.zeros(states.shape[0])
     see_ball = (np.count_nonzero(states[:, ball], axis=-1) *
-                additional_value).reshape((states.shape[0], 1))
+                additional_value)
+    # print(see_ball)
     return see_ball
