@@ -16,7 +16,6 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
           device):
     obs_striker, obs_goalie = env.reset()
 
-
     steps_striker, steps_goalie = [], []
     total_steps = 0
     ep_rewards_striker = [0.] * args.num_workers
@@ -28,8 +27,8 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
         for _ in range(args.rollout_steps):
             obs_striker = Variable(
                 torch.from_numpy(obs_striker).float()).to(device)
-            obs_goalie = Variable(torch.from_numpy(obs_goalie).float() /
-                                  255.).to(device)
+            obs_goalie = Variable(
+                torch.from_numpy(obs_goalie).float()).to(device)
 
             # network forward pass
             policies_striker, values_striker = net_striker(obs_striker)
@@ -66,20 +65,17 @@ def train(args, net_striker, net_goalie, optim_striker, optim_goalie, env,
                 rewards[0]).float().unsqueeze(1).to(device)
             rewards_goalie = torch.from_numpy(
                 rewards[1]).float().unsqueeze(1).to(device)
-  
+
             steps_striker.append(
                 (rewards_striker, masks_striker, actions_striker,
                  policies_striker, values_striker))
             steps_goalie.append((rewards_goalie, masks_goalie, actions_goalie,
                                  policies_goalie, values_goalie))
 
-
-
         final_obs_striker = Variable(
             torch.from_numpy(obs_striker).float()).to(device)
         final_obs_goalie = Variable(
             torch.from_numpy(obs_goalie).float()).to(device)
-
 
         _, final_values_striker = net_striker(final_obs_striker)
         _, final_values_goalie = net_goalie(final_obs_goalie)
@@ -165,6 +161,7 @@ def process_rollout(args, steps, device):
     # return data as batched Tensors, Variables
     return map(lambda x: torch.cat(x, 0), zip(*out))
 
-def eval_with_random_agent(net_striker, net_goalie, env):
 
+def eval_with_random_agent(net_striker, net_goalie, env):
+    obs_striker, obs_goalie = env.reset()
     return
