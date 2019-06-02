@@ -12,13 +12,13 @@ from a2c.train_multi import train
 from env_exp import SocTwoEnv
 
 parser = argparse.ArgumentParser(description='A2C (Advantage Actor-Critic)')
-parser.add_argument('env_name', type=str, help='Gym environment id')
+# parser.add_argument('env_name', type=str, help='Gym environment id')
 parser.add_argument('--no-cuda',
                     action='store_true',
                     help='use to disable available CUDA')
 parser.add_argument('--num-workers',
                     type=int,
-                    default=8,
+                    default=16,
                     help='number of parallel workers')
 parser.add_argument('--rollout-steps',
                     type=int,

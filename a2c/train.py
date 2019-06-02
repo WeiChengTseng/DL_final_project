@@ -22,7 +22,7 @@ def train(args, net, optimizer, env, cuda):
     ep_rewards = [0.] * args.num_workers
     render_timer = 0
     plot_timer = 0
-    writer = SummaryWriter('./a2c/logs/')
+    # writer = SummaryWriter('./a2c/logs/')
 
     while total_steps < args.total_steps:
         for _ in range(args.rollout_steps):
@@ -87,10 +87,10 @@ def train(args, net, optimizer, env, cuda):
             steps.append((rewards, masks, actions, policies, values))
 
         # print(np.array([i[0].flatten().sum() for i in steps]).mean())
-        writer.add_scalar(
-            'average_reward',
-            np.array([i[0].flatten().sum().item() for i in steps]).mean(),
-            total_steps)
+        # writer.add_scalar(
+        #     'average_reward',
+        #     np.array([i[0].flatten().sum().item() for i in steps]).mean(),
+        #     total_steps)
         final_obs = Variable(
             torch.from_numpy(obs.transpose((0, 3, 1, 2))).float() / 255.)
         if cuda:

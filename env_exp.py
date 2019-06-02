@@ -28,12 +28,14 @@ class SocTwoEnv():
                  n_striker=16,
                  n_goalie=16,
                  render=True):
-        self._striker_map = [
-            8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7
-        ]
-        self._goalie_map = [
-            8, 0, 4, 2, 14, 10, 12, 6, 13, 7, 11, 3, 15, 9, 5, 1
-        ]
+        self._striker_map = {
+            'field': [8, 0, 4, 2, 14, 10, 12, 6, 9, 1, 5, 3, 15, 11, 13, 7],
+            'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 1, 3, 11, 7]
+        }
+        self._goalie_map = {
+            'field': [8, 0, 4, 2, 14, 10, 12, 6, 13, 7, 11, 3, 15, 9, 5, 1],
+            'team': [8, 4, 14, 12, 9, 5, 15, 13, 0, 2, 10, 6, 7, 3, 9, 1]
+        }
 
         self.env = UnityEnvironment(file_name=env_path,
                                     worker_id=0,
@@ -59,7 +61,7 @@ class SocTwoEnv():
         """
         Reset the all environments and agents.
         """
-        self.env_info_str = self.env.reset(
+        self.env_info_striker = self.env.reset(
             train_mode=self.train_mode)[self.striker_brain_name]
         self.env_info_goalie = self.env.reset(
             train_mode=self.train_mode)[self.goalie_brain_name]
@@ -70,7 +72,7 @@ class SocTwoEnv():
         empty_action = [0] * 16
         return self.step(empty_action, empty_action)[0]
 
-    def step(self, action_striker, action_goalie):
+    def step(self, action_striker, action_goalie, order=None):
         """
         In each timestep, give each striker and goalie a instruction
         to do action. And then, get the current observation stored
@@ -80,7 +82,10 @@ class SocTwoEnv():
         - action_striker: a vector with shape [num_striker]
         - action_goalie: a vector with shape [num_goalie]
         """
-        # action_goalie = self.action_map(action_goalie)
+        if order:
+            action_striker = action_striker[self._striker_map[order]]
+            action_goalie = action_goalie[self._goalie_map[order]]
+
         self.env_info = self.env.step({
             self.striker_brain_name: action_striker,
             self.goalie_brain_name: action_goalie
