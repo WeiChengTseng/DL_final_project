@@ -22,12 +22,12 @@ def train(args, net, optimizer, env, cuda):
     ep_rewards = [0.] * args.num_workers
     render_timer = 0
     plot_timer = 0
-    writer = SummaryWriter('./a2c/test_logs/')
+    # writer = SummaryWriter('./a2c/long_rollout/')
 
     while total_steps < args.total_steps:
         for _ in range(args.rollout_steps):
-            obs = Variable(
-                torch.from_numpy(obs.transpose((0, 3, 1, 2))).float() / 255.)
+            obs = (torch.from_numpy(obs.transpose(
+                (0, 3, 1, 2))).float() / 255.)
             if cuda: obs = obs.cuda()
 
             # network forward pass
@@ -87,29 +87,33 @@ def train(args, net, optimizer, env, cuda):
             steps.append((rewards, masks, actions, policies, values))
 
         # print(np.array([i[0].flatten().sum() for i in steps]).mean())
-        writer.add_scalar(
-            'average_reward',
-            np.array([i[0].flatten().sum().item() for i in steps]).mean(),
-            total_steps)
-            
-        final_obs = Variable(
-            torch.from_numpy(obs.transpose((0, 3, 1, 2))).float() / 255.)
+        # writer.add_scalar(
+        #     'average_reward',
+        #     np.array([i[0].flatten().sum().item() for i in steps]).mean(),
+        #     total_steps)
+
+        final_obs = (torch.from_numpy(obs.transpose(
+            (0, 3, 1, 2))).float() / 255.)
         if cuda:
             final_obs = final_obs.cuda()
         _, final_values = net(final_obs)
         steps.append((None, None, None, None, final_values))
 
+        # print(steps)
+
         actions, policies, values, returns, advantages = process_rollout(
             args, steps, cuda)
+
+        # print(advantages)
 
         # calculate action probabilities
         probs = F.softmax(policies, dim=-1)
         log_probs = F.log_softmax(policies, dim=-1)
-        log_action_probs = log_probs.gather(1, Variable(actions))
+        log_action_probs = log_probs.gather(1, (actions))
 
-        policy_loss = (-log_action_probs * Variable(advantages)).sum()
-        value_loss = (.5 * (values - Variable(returns))**2.).sum()
-        entropy_loss = (log_probs * probs).sum()
+        policy_loss = (-log_action_probs * (advantages)).mean()
+        value_loss = (.5 * (values - (returns))**2.).mean()
+        entropy_loss = (log_probs * probs).mean()
 
         loss = policy_loss + value_loss * args.value_coeff + entropy_loss * args.entropy_coeff
         loss.backward()
@@ -120,6 +124,7 @@ def train(args, net, optimizer, env, cuda):
 
         # cut LSTM state autograd connection to previous rollout
         steps = []
+        exit()
 
     env.close()
     return
@@ -148,4 +153,5 @@ def process_rollout(args, steps, cuda):
         out[t] = actions, policies, values, returns, advantages
 
     # return data as batched Tensors, Variables
+    print(list(zip(*out)))
     return map(lambda x: torch.cat(x, 0), zip(*out))

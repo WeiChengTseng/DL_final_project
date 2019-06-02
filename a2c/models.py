@@ -126,8 +126,6 @@ class A2C(nn.Module):
                                   nn.Linear(128, 64), nn.ReLU(),
                                   nn.Linear(64, 32), nn.ReLU())
 
-        # self.fc = nn.Sequential(nn.Linear(64 * 7 * 7, 512), nn.ReLU())
-
         self.pi = nn.Linear(32, num_actions)
         self.v = nn.Linear(32, 1)
 
@@ -153,7 +151,6 @@ class A2C(nn.Module):
         N = conv_in.size()[0]
 
         shared_out = self.shared_net(conv_in).view(N, -1)
-
 
         pi_out = self.pi(shared_out)
         v_out = self.v(shared_out)

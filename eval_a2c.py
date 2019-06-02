@@ -20,7 +20,7 @@ def eval_with_random_agent(net_striker,
                            net_goalie,
                            env,
                            device,
-                           eval_epsoid=20):
+                           eval_epsoid=40):
     obs_striker, obs_goalie = env.reset('team')
     epsoid = 0
     while epsoid < eval_epsoid:
@@ -68,7 +68,7 @@ def eval_with_random_agent(net_striker,
 if __name__ == '__main__':
     env_path = './env/macos/SoccerTwosFast.app'
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
-    net_path = './a2c/ckpt/a2c_step3560000.pth'
+    net_path = './a2c/ckpt/a2c_step20320000.pth'
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
