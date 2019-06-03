@@ -42,7 +42,6 @@ def eval_with_random_agent(net_striker,
         actions_striker = torch.cat([
             torch.LongTensor(np.random.randint(0, 7, (8, 1))),
             actions_striker[8:],
-            
         ],
                                     dim=0)
         actions_goalie = torch.cat([
@@ -139,8 +138,8 @@ def eval_self_striker_goalie(net_striker,
         ],
                                     dim=0)
         actions_goalie = torch.cat([
-            torch.LongTensor(np.random.randint(0, 5, (8, 1))), 
-            actions_goalie[8:]
+            torch.LongTensor(np.random.randint(0, 5,
+                                               (8, 1))), actions_goalie[8:]
         ],
                                    dim=0)
 
@@ -167,6 +166,7 @@ def eval_agents_compete(strikers,
     obs_striker, obs_goalie = env.reset(order)
     policies_striker = [None, None]
     policies_goalie = [None, None]
+    # time.sleep(5)
 
     epsoid = 0
     while epsoid < eval_epsoid:
@@ -207,11 +207,13 @@ if __name__ == '__main__':
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
     # net_path = './a2c/ckpt/a2c_step20320000.pth'
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # net_path = './a2c/ckpt_reward_shaping/a2c_step39960000.pth'
-    net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
+    net_path = './a2c/ckpt_reward_shaping/a2c_step39960000.pth'
+    # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
+    # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
+    net_path_large = './a2c/ckpt_wors_2e/a2cLarge_step10920000.pth'
 
     with torch.no_grad():
-        # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
+        policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
         policy_striker_large, policy_goalie_large, = A2CLarge(7).to(
             device), A2CLarge(5).to(device)
 
@@ -219,15 +221,15 @@ if __name__ == '__main__':
         policy_striker_large.load_state_dict(ckpt_large['striker_a2c'])
         policy_goalie_large.load_state_dict(ckpt_large['goalie_a2c'])
 
-        # ckpt = torch.load(net_path, map_location=device)
-        # policy_striker.load_state_dict(ckpt['striker_a2c'])
-        # policy_goalie.load_state_dict(ckpt['goalie_a2c'])
+        ckpt = torch.load(net_path, map_location=device)
+        policy_striker.load_state_dict(ckpt['striker_a2c'])
+        policy_goalie.load_state_dict(ckpt['goalie_a2c'])
 
         policy_striker_large.eval()
         policy_goalie_large.eval()
 
-        # policy_striker.eval()
-        # policy_goalie.eval()
+        policy_striker.eval()
+        policy_goalie.eval()
 
         # eval_with_random_agent(policy_striker,
         #                        policy_goalie,
@@ -240,17 +242,20 @@ if __name__ == '__main__':
         #                        env,
         #                        device,
         #                        eval_epsoid=100)
-        eval_self_striker_goalie(policy_striker_large,
-                                 policy_goalie_large,
-                                 env,
-                                 device,
-                                 eval_epsoid=100)
+
+        # eval_self_striker_goalie(policy_striker_large,
+        #                          policy_goalie_large,
+        #                          env,
+        #                          device,
+        #                          eval_epsoid=100)
 
         # eval_self_complete(policy_striker, policy_goalie, env, device, 'team')
-        # eval_agents_compete([policy_striker_large, policy_striker],
-        #                     [policy_goalie_large, policy_goalie],
-        #                     env,
-        #                     device,
-        #                     order='team',
-        #                     eval_epsoid=40)
+        # eval_self_complete(policy_striker_large, policy_striker_large, env,
+        #                    device, 'team')
+        eval_agents_compete([policy_striker_large, policy_striker],
+                            [policy_goalie_large, policy_goalie],
+                            env,
+                            device,
+                            order='team',
+                            eval_epsoid=100)
     pass
