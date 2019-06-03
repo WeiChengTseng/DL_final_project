@@ -1,5 +1,6 @@
 import time
 import matplotlib
+import time
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +23,7 @@ def eval_with_random_agent(net_striker,
                            device,
                            eval_epsoid=40):
     obs_striker, obs_goalie = env.reset('team')
+    time.sleep(5)
     epsoid = 0
     while epsoid < eval_epsoid:
         obs_striker = Variable(
@@ -38,15 +40,26 @@ def eval_with_random_agent(net_striker,
         actions_goalie = probs_goalie.multinomial(1).data
 
         actions_striker = torch.cat([
-            actions_striker[:8],
-            torch.LongTensor(np.random.randint(0, 7, (8, 1)))
+            torch.LongTensor(np.random.randint(0, 7, (8, 1))),
+            actions_striker[8:],
+            
         ],
                                     dim=0)
         actions_goalie = torch.cat([
-            actions_goalie[:8],
-            torch.LongTensor(np.random.randint(0, 5, (8, 1)))
+            torch.LongTensor(np.random.randint(0, 5, (8, 1))),
+            actions_goalie[8:],
         ],
                                    dim=0)
+        # actions_striker = torch.cat([
+        #     actions_striker[:8],
+        #     torch.LongTensor(np.random.randint(0, 7, (8, 1)))
+        # ],
+        #                             dim=0)
+        # actions_goalie = torch.cat([
+        #     actions_goalie[:8],
+        #     torch.LongTensor(np.random.randint(0, 5, (8, 1)))
+        # ],
+        #                            dim=0)
 
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
                                           'team')
