@@ -180,11 +180,13 @@ def process_rollout(args, steps, device):
     return map(lambda x: torch.cat(x, 0), zip(*out))
 
 
-def reward_shaping(states, additional_value=1e-3):
+def reward_shaping(states, additional_value=1e-3, striker=False):
     # print(states)
     ball = np.arange(14, dtype=int) * 8
     additional_reward = np.zeros(states.shape[0])
     see_ball = (np.count_nonzero(states[:, ball], axis=-1) *
                 additional_value)
+    # if striker:
+    #     dist = (1 / states[:, 8]) * 1e-3
     # print(see_ball)
     return see_ball

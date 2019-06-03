@@ -98,26 +98,37 @@ class SocTwoEnv():
             self.striker_brain_name: action_striker,
             self.goalie_brain_name: action_goalie
         })
-        self.observation_striker = np.array(
-            self.env_info[self.striker_brain_name].vector_observations)
-        self.observation_goalie = np.array(
-            self.env_info[self.goalie_brain_name].vector_observations)
+        # self.observation_striker = np.array(
+        #     self.env_info[self.striker_brain_name].vector_observations)
+        # self.observation_goalie = np.array(
+        #     self.env_info[self.goalie_brain_name].vector_observations)
 
-        rewards_striker, rewards_goalie = self.reward()
-        dones_striker, dones_goalie = self.done()
+        observation_striker, observation_goalie = self._observation()
+        rewards_striker, rewards_goalie = self._reward()
+        dones_striker, dones_goalie = self._done()
 
         if order:
+            observation_striker = observation_striker[
+                self._striker_inv_map[order]]
+            observation_goalie = observation_goalie[
+                self._goalie_inv_map[order]]
             rewards_striker = rewards_striker[self._striker_inv_map[order]]
             rewards_goalie = rewards_goalie[self._goalie_inv_map[order]]
             dones_striker = dones_striker[self._striker_inv_map[order]]
             dones_goalie = dones_goalie[self._goalie_inv_map[order]]
-            pass
 
-        return [[self.observation_striker, self.observation_goalie],
+        return [[observation_striker, observation_goalie],
                 [rewards_striker, rewards_goalie],
                 [dones_striker, dones_goalie], None]
 
-    def reward(self):
+    def _observation(self):
+        self.observation_striker = np.array(
+            self.env_info[self.striker_brain_name].vector_observations)
+        self.observation_goalie = np.array(
+            self.env_info[self.goalie_brain_name].vector_observations)
+        return self.observation_striker, self.observation_goalie
+
+    def _reward(self):
         """
         return the rewards of striker and goalie respectively.
         """
@@ -134,7 +145,7 @@ class SocTwoEnv():
         self.env.close()
         return
 
-    def done(self):
+    def _done(self):
         """
         Check whether each agent has finished at their own episode,
         true means it has finished.
@@ -183,4 +194,3 @@ if __name__ == "__main__":
             soc_env.step(action_striker, action_goalie, order)
 
     soc_env.close()
-

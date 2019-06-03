@@ -9,12 +9,11 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 
-from a2c.models import AtariCNN, A2C
+from a2c.models import AtariCNN, A2C, A2CLarge
 from a2c.envs import make_env, RenderSubprocVecEnv
 from a2c.train_multi import train
 
 from env_exp import SocTwoEnv
-
 
 def eval_with_random_agent(net_striker,
                            net_goalie,
@@ -37,7 +36,6 @@ def eval_with_random_agent(net_striker,
         actions_striker = probs_striker.multinomial(1).data
         actions_goalie = probs_goalie.multinomial(1).data
 
-        # gather env data, reset done envs and update their obs
         actions_striker = torch.cat([
             actions_striker[:8],
             torch.LongTensor(np.random.randint(0, 7, (8, 1)))
@@ -49,7 +47,6 @@ def eval_with_random_agent(net_striker,
         ],
                                    dim=0)
 
-        # print(actions_striker)
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
                                           'team')
         obs_striker, obs_goalie = obs
@@ -64,8 +61,13 @@ def eval_with_random_agent(net_striker,
     return
 
 
-def eval_self_complete(net_striker, net_goalie, env, device, eval_epsoid=40):
-    obs_striker, obs_goalie = env.reset('team')
+def eval_self_complete(net_striker,
+                       net_goalie,
+                       env,
+                       device,
+                       order='team',
+                       eval_epsoid=40):
+    obs_striker, obs_goalie = env.reset(order)
     epsoid = 0
     while epsoid < eval_epsoid:
         obs_striker = Variable(
@@ -81,21 +83,8 @@ def eval_self_complete(net_striker, net_goalie, env, device, eval_epsoid=40):
         actions_striker = probs_striker.multinomial(1).data
         actions_goalie = probs_goalie.multinomial(1).data
 
-        # gather env data, reset done envs and update their obs
-        # actions_striker = torch.cat([
-        #     actions_striker[:8],
-        #     torch.LongTensor(np.random.randint(0, 7, (8, 1)))
-        # ],
-        #                             dim=0)
-        # actions_goalie = torch.cat([
-        #     actions_goalie[:8],
-        #     torch.LongTensor(np.random.randint(0, 7, (8, 1)))
-        # ],
-        #                            dim=0)
-
-        # print(actions_striker)
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
-                                          'team')
+                                          order)
         obs_striker, obs_goalie = obs
 
         rewards_striker = torch.from_numpy(
@@ -112,10 +101,13 @@ if __name__ == '__main__':
     env_path = './env/macos/SoccerTwosFast.app'
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
     # net_path = './a2c/ckpt/a2c_step20320000.pth'
-    net_path = './a2c/ckpt_reward_shaping/a2c_step7200000.pth'
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    net_path = './a2c/ckpt_reward_shaping/a2c_step39960000.pth'
+    # net_path = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
 
     policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
+    # policy_striker, policy_goalie = A2CLarge(7).to(device), A2CLarge(5).to(
+    #     device)
 
     checkpoint = torch.load(net_path, map_location=device)
     policy_striker.load_state_dict(checkpoint['striker_a2c'])
@@ -124,5 +116,5 @@ if __name__ == '__main__':
     policy_striker.eval()
     policy_goalie.eval()
     eval_with_random_agent(policy_striker, policy_goalie, env, device)
-    # eval_self_complete(policy_striker, policy_goalie, env, device)
+    # eval_self_complete(policy_striker, policy_goalie, env, device, 'team')
     pass

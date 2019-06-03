@@ -17,6 +17,8 @@ For Windows, the build binary file is in `./env/windows/soccer_twos`
 
 - A2C
     - developed by Wei-Cheng Tseng
+    - python main_a2c.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --reward_shaping True
+
 
 ### Multi-Agent Method
 - MADDPG
