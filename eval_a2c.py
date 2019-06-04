@@ -238,12 +238,12 @@ def eval_compete_acppo(strikers,
         actions_goalie = probs_goalie.multinomial(1).data
 
         # print(actions_striker)
-        # actions_striker = torch.cat((actions_striker, action_ppo_striker), dim=0)
-        # actions_goalie = torch.cat((actions_goalie, action_ppo_goalie), dim=0)
-        random_act_striker = torch.LongTensor(np.random.randint(7, size=(8,1)))
-        random_act_goalie = torch.LongTensor(np.random.randint(5, size=(8,1)))
-        actions_striker = torch.cat((random_act_striker, action_ppo_striker), dim=0)
-        actions_goalie = torch.cat((random_act_goalie, action_ppo_goalie), dim=0)
+        actions_striker = torch.cat((actions_striker, action_ppo_striker), dim=0)
+        actions_goalie = torch.cat((actions_goalie, action_ppo_goalie), dim=0)
+        # random_act_striker = torch.LongTensor(np.random.randint(7, size=(8,1)))
+        # random_act_goalie = torch.LongTensor(np.random.randint(5, size=(8,1)))
+        # actions_striker = torch.cat((random_act_striker, action_ppo_striker), dim=0)
+        # actions_goalie = torch.cat((random_act_goalie, action_ppo_goalie), dim=0)
 
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
                                           order)
