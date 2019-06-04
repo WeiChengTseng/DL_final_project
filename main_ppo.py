@@ -187,7 +187,7 @@ while i_episode < (max_episodes):
 
         states, reward, done, _ = env.step(action_striker, action_goalie)
         for i in range(16):
-            if i in reward_mapping[i]!=0:
+            if reward_mapping[i]!=0:
                 reward[0][i] = reward[0][i] + reward_mapping[i]
         
         state_striker = states[0]
