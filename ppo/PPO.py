@@ -5,6 +5,7 @@ import gym
 import numpy as np
 import random
 
+
 class ActorCritic(nn.Module):
     def __init__(self, state_dim, action_dim, n_latent_var, device):
         super(ActorCritic, self).__init__()
@@ -19,15 +20,15 @@ class ActorCritic(nn.Module):
             nn.Linear(n_latent_var, action_dim), nn.Softmax(dim=-1))
 
         # critic
-        self.value_layer = nn.Sequential(
-            nn.Linear(state_dim, n_latent_var), nn.Tanh(),
-            nn.Linear(n_latent_var, n_latent_var), nn.Tanh(),
-            nn.Linear(n_latent_var, 1))
+        self.value_layer = nn.Sequential(nn.Linear(state_dim, n_latent_var),
+                                         nn.Tanh(),
+                                         nn.Linear(n_latent_var, n_latent_var),
+                                         nn.Tanh(), nn.Linear(n_latent_var, 1))
 
     def forward(self):
         raise NotImplementedError
-    
-    def act_test(self, state,action_dim):
+
+    def act_test(self, state, action_dim):
 
         model_state = torch.from_numpy(state).float().to(self.device)
         with torch.no_grad():
@@ -41,23 +42,25 @@ class ActorCritic(nn.Module):
             actions = np.concatenate((model_index, random_action),axis=None)
         return actions
 
-
-    def act(self, state, memory):
+    def act(self, state, memory=None):
         state = torch.from_numpy(state).float().to(self.device)
         action_probs = self.action_layer(state)
         dist = Categorical(action_probs)
         action = dist.sample()
 
-        if state.dim() >= 1:
-            memory.update_state(state)
-            memory.update_action(action)
-            memory.update_logprobs(dist.log_prob(action))
-            return action.numpy()
-        else:
-            memory.states.append(state)
-            memory.actions.append(action)
-            memory.logprobs.append(dist.log_prob(action))
-            return action.item()
+        if memory:
+            if state.dim() >= 1:
+                memory.update_state(state)
+                memory.update_action(action)
+                memory.update_logprobs(dist.log_prob(action))
+                return action.numpy()
+            else:
+                memory.states.append(state)
+                memory.actions.append(action)
+                memory.logprobs.append(dist.log_prob(action))
+                return action.item()
+
+        return action
 
     def evaluate(self, state, action):
         action_probs = self.action_layer(state)
@@ -75,12 +78,13 @@ class PPO:
     def __init__(self,
                  state_dim,
                  action_dim,
-                 n_latent_var,
-                 lr,
-                 gamma,
-                 K_epochs,
-                 eps_clip,
-                 device='cpu'):
+                 n_latent_var=64,
+                 lr=1e-3,
+                 gamma=0.99,
+                 K_epochs=4,
+                 eps_clip=0.2,
+                 device='cpu',
+                 ckpt_path=None):
         self.lr = lr
         self.gamma = gamma
         self.eps_clip = eps_clip
@@ -93,7 +97,19 @@ class PPO:
         self.policy_old = ActorCritic(state_dim, action_dim, n_latent_var,
                                       device).to(self.device)
 
+        if ckpt_path:
+            self.policy.load_state_dict(
+                torch.load(ckpt_path, map_location=device))
+            self.policy_old.load_state_dict(
+                torch.load(ckpt_path, map_location=device))
+            print('ppo restore')
+
         self.MseLoss = nn.MSELoss()
+
+    def act(self, states):
+
+
+        return self.policy.act(states.numpy()).view(8,1)
 
     def update(self, memory):
         rewards = memory.rewards

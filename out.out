@@ -1,0 +1,892 @@
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  0 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  1 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  2 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  3 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  4 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  5 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False  True False False  True False  True False  True False False False
+  True False False  True]
+after [False False  True  True False False False False  True  True False False
+  True  True False False]
+episode:  6 **********
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  7 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  8 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  9 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  10 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  11 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  12 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  13 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  14 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  15 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  16 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  17 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  18 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  19 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  20 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  21 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  22 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  23 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  24 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  25 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  26 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  27 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  28 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  29 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  30 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  31 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  32 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  33 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  34 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  35 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  36 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  37 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  38 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  39 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  40 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  41 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  42 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  43 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  44 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  45 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False  True  True False False False False False False  True
+  True False False False]
+after [False False False False False False  True  True  True  True False False
+ False False False False]
+episode:  46 **********
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  47 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  48 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  49 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  50 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  51 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  52 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  53 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  54 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  55 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  56 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  57 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  58 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  59 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  60 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  61 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  62 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  63 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  64 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  65 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  66 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  67 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  68 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  69 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  70 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  71 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  72 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  73 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  74 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  75 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  76 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  77 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  78 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  79 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  80 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  81 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  82 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  83 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  84 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  85 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  86 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  87 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  88 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False False False False False  True False  True False False False
+ False False False False]
+after [False False False False False False False False False False False False
+  True  True False False]
+episode:  89 **********
+arg_done_goalie [[6]
+ [8]]
+arg_done_str [[ 6]
+ [14]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  90 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  91 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False  True False False False False False False False
+  True False False False]
+after [False False False False False False False False  True  True False False
+ False False False False]
+episode:  92 **********
+arg_done_goalie [[ 4]
+ [12]]
+arg_done_str [[ 4]
+ [12]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  93 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
+before [ True False False False False False False False False False False False
+ False  True False False]
+after [ True  True False False False False False False False False False False
+ False False False False]
+episode:  94 **********
+arg_done_goalie [[ 0]
+ [13]]
+arg_done_str [[0]
+ [8]]
+before [False False False False False False False  True False  True False False
+ False False False False]
+after [False False False False False False False False False False False False
+ False False  True  True]
+episode:  95 **********
+arg_done_goalie [[7]
+ [9]]
+arg_done_str [[ 7]
+ [15]]
+before [False False False False False  True False False False False  True False
+ False False False False]
+after [False False False False False False False False False False  True  True
+ False False False False]
+episode:  96 **********
+arg_done_goalie [[ 5]
+ [10]]
+arg_done_str [[ 5]
+ [13]]
+before [False False False  True False False False False False False False  True
+ False False False False]
+after [False False False False False False  True  True False False False False
+ False False False False]
+episode:  97 **********
+arg_done_goalie [[ 3]
+ [11]]
+arg_done_str [[ 3]
+ [11]]
+before [False  True False False False False False False False False False False
+ False False False  True]
+after [False False  True  True False False False False False False False False
+ False False False False]
+episode:  98 **********
+arg_done_goalie [[ 1]
+ [15]]
+arg_done_str [[1]
+ [9]]
+before [False False  True False False False False False False False False False
+ False False  True False]
+after [False False False False  True  True False False False False False False
+ False False False False]
+episode:  99 **********
+arg_done_goalie [[ 2]
+ [14]]
+arg_done_str [[ 2]
+ [10]]
