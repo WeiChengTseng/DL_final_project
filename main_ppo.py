@@ -8,27 +8,32 @@ import random
 import tensorboardX
 import os
 import argparse
+import datetime
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--hidden', type=int, default=64, help='hidden layer dim')
-parser.add_argument('--max_episode', type=int, default=50000, help='max episode number')
-parser.add_argument('--update_episode', type=float, default=0.001, help='update episode number')
+parser.add_argument('--max_episode', type=int, default=9601, help='max episode number')
+parser.add_argument('--update_episode', type=int, default=320, help='update episode number')
 parser.add_argument('--log_interval', type=int, default=320, help='log_interval')
-parser.add_argument('--lr',default = 0.001, type=float, help='learning rate')
+parser.add_argument('--lr',default = 1e-3, type=float, help='learning rate')
 parser.add_argument('--gamma',default = 0.99, type=float,help = 'discount')
-parser.add_argument('--K_epochs',default = 4, type=int, help='K_epochs')
+parser.add_argument('--K_epochs',default = 10, type=int, help='K_epochs')
 parser.add_argument('--eps_clip',default = 0.2, type=float, help='clipping expilson')
 parser.add_argument('--test_loop',default = 10, type=int , help='test loop')
 parser.add_argument("--folder", default="./PPO_summary",type=str, help="saving_folder")
+parser.add_argument("--rewards_add", default=False ,type=bool, help="addition rewards")
+parser.add_argument("--reward_add_value", default=0.0004 ,type=float, help="addition rewards")
+
 opt = parser.parse_args()
 
 if not os.path.exists(opt.folder):
     os.makedirs(opt.folder)
 env_path = './env/linux/soccer_test.x86_64'
-env = SocTwoEnv(env_path, worker_id=1, train_mode=True)
+env = SocTwoEnv(env_path, worker_id=2, train_mode=True)
 
 f_h = open(opt.folder+"/hyperparam.txt","a")
+print("Current time: ", datetime.datetime.now(), file=f_h)
 print("hidden dim: ", opt.hidden, file=f_h)
 print("max_episode: ", opt.max_episode, file=f_h)
 print("log_interval:", opt.log_interval, file=f_h)
@@ -39,6 +44,7 @@ print("K_epoch: ",opt.K_epochs, file=f_h)
 print("clipping: ", opt.eps_clip, file=f_h)
 print("test_loop: ", opt.test_loop, file=f_h)
 print("folder: ", opt.folder, file=f_h)
+print("reward_addition on 90 degree: ", str(addition), file=f_h)
 f_h.close()
 ############## Hyperparameters Striker ##############
 state_dim_striker = 112
@@ -62,7 +68,9 @@ K_epochs = opt.K_epochs  # update policy for K epochs
 eps_clip = opt.eps_clip  # clip parameter for PPO
 random_seed = None
 
+reward_mapping = np.zeros(16)
 
+addition = opt.reward_add_value
 
 if random_seed:
     torch.manual_seed(random_seed)
@@ -106,31 +114,26 @@ iter_test = 0
 win_prob = []
 
 # training loop
-state_striker, state_goalie = env.reset()
 while i_episode < (max_episodes):
+    state_striker, state_goalie = env.reset()
     while True:
 
         # testing
-        if (((i_episode) % log_interval == 0)and (temp == 0)):
+        if (((i_episode) % log_interval == 0)and (temp == 0) and (i_episode!=0)):
             iter_test = 0
             state_striker, state_goalie = env.reset()
             while iter_test < test_loop:
                 while True:
                     action_striker = ppo_striker.policy.act_test(state_striker, action_dim_striker)
                     action_goalie = ppo_goalie.policy.act_test(state_goalie, action_dim_goalie)
-                    print("mask_striker: ",mask_striker)
-                    print("mask_goalie: ",mask_goalie)
-                    print("=========================")
-                    exit()
-                    action_striker[mask_striker] = 0
                     action_goalie[mask_goalie] = 0
+                    action_striker[mask_striker] = 0
                     states, reward, done, _ = env.step(action_striker, action_goalie)
 
                     state_striker = states[0] 
                     state_goalie = states[1]
                     
                     done[0][mask_striker] = True
-                    
                     done[1][mask_goalie] = True
                     
             
@@ -143,15 +146,9 @@ while i_episode < (max_episodes):
                         if i in np.argwhere(mask_goalie==False):
                             mask_goalie[i] = True
 
-                    
                     if (len(np.argwhere(done[0]).flatten())+ len(np.argwhere(done[1]).flatten()) == 32):
-                        memory_goalie.update_record()
-                        memory_striker.update_record()
-                        
                         win = test_str_reward >0
-
                         red=len(np.argwhere(win[:8]==True))
-                        
                         win_prob += [(red/8)*100]
                         mask_striker[:] = False
                         mask_goalie[:] = False
@@ -161,12 +158,14 @@ while i_episode < (max_episodes):
                         if iter_test == test_loop:
                             result =np.mean(np.array(win_prob))
                             f = open(opt.folder+"/result.txt","a")
-                            print('stocastic result: ',result, file= f)
-                            print('stocastic result: ',result)
+                            print("Now time: ", datetime.datetime.now(), file=f)
+                            print('episode: {} stocastic result: '.format(i_episode),result, file= f)
+                            print('episode: {} stocastic result: '.format(i_episode),result)
+                            print("Now time: ", datetime.datetime.now())
                             print("======================", file=f)
                             f.close()
                             win_prob = []
-                            
+
                         state_striker, state_goalie = env.reset()
                         temp = 1
                         break
@@ -178,22 +177,43 @@ while i_episode < (max_episodes):
         action_striker = ppo_striker.policy_old.act(state_striker,
                                                     memory_striker)
         action_goalie = ppo_goalie.policy_old.act(state_goalie, memory_goalie)
-        action_striker[mask_striker] = 0
+
         action_goalie[mask_goalie] = 0
+        action_striker[mask_striker] = 0
+
+        if i_episode <= 6400:
+            for i in range(16):
+                if state_striker[i][2*7] == 1:
+                    reward_mapping[i] += (addition -(0.00001*(i_episode*0.001)))
+                else:
+                    reward_mapping[i] -= (addition -(0.00001*(i_episode*0.001)))
+
+
         states, reward, done, _ = env.step(action_striker, action_goalie)
+        
+        if opt.rewards_add:
+            list(reward)[0] = list(reward)[0] + reward_mapping
+            reward = tuple(reward)
+        
         state_striker = states[0]
         state_goalie = states[1]
+
+        done[0][mask_striker] = True
+        done[1][mask_goalie] = True
 
         # Saving reward:
         memory_striker.update_reward(reward[0], done[0])
         memory_goalie.update_reward(reward[1], done[1])
 
+
         running_reward_striker += reward[0]
         running_reward_goalie += reward[1]
 
-        done[0][mask_striker] = True
-        done[1][mask_goalie] = True
         
+        reward_mapping[i] = 0
+
+        
+
         for i in np.argwhere(done[0]==True):
             if i in np.argwhere(mask_striker==False):
                 mask_striker[i] = True
@@ -204,8 +224,8 @@ while i_episode < (max_episodes):
         
         if (len(np.argwhere(done[0]).flatten())+ len(np.argwhere(done[1]).flatten()) == 32):
             i_episode += 32
-            memory_goalie.update_record()
             memory_striker.update_record()
+            memory_goalie.update_record()
             
             mask_striker[:] = False
             mask_goalie[:] = False
@@ -214,7 +234,7 @@ while i_episode < (max_episodes):
 
             break
 
-    if (i_episode) % update_episode == 0:
+    if ((i_episode) % update_episode == 0):
         ppo_striker.update(memory_striker)
         ppo_goalie.update(memory_goalie)
         memory_striker.clear_memory()
@@ -227,7 +247,7 @@ while i_episode < (max_episodes):
     timestep_striker[:] = 0
 
     # logging
-    if (i_episode % 10 == 0):
+    if (i_episode % 64 == 0):
         print("episode: ",i_episode)
     if ((i_episode % log_interval) == 0):
         

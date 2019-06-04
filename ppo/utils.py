@@ -29,7 +29,8 @@ class ReplayBuffer:
             self._trags[0].push_action(action)
         else:
             for i in range(self._n_actor):
-                self._trags[i].push_action(action[i])
+                if i in np.argwhere(self._record == False).flatten():
+                    self._trags[i].push_action(action[i])
         return
 
     def update_reward(self, reward, done=None):
@@ -38,7 +39,8 @@ class ReplayBuffer:
             
         else:
             for i in range(self._n_actor):
-                self._trags[i].push_reward(reward[i])
+                if i in np.argwhere(self._record == False).flatten():
+                    self._trags[i].push_reward(reward[i])
 
         for i in (np.argwhere(done == True).flatten()):
             if i in np.argwhere(self._record == False).flatten():
@@ -55,7 +57,8 @@ class ReplayBuffer:
         
         if state.dim() >=1:
             for i in range(self._n_actor):
-                self._trags[i].push_state(state[i])
+                if i in np.argwhere(self._record == False).flatten():
+                    self._trags[i].push_state(state[i])
         else:
             self._trags[0].push_state(state)
         return
@@ -76,12 +79,13 @@ class ReplayBuffer:
     def update_logprobs(self, logprob):
         if logprob.dim() > 0:
             for i in range(self._n_actor):
-                self._trags[i].push_logprob(logprob[i])
+                if i in np.argwhere(self._record == False).flatten():
+                    self._trags[i].push_logprob(logprob[i])
         else:
             self._trags[0].push_logprob(logprob)
 
     def update_record(self):
-        self._record[:] = False;
+        self._record[:] = False
 
         return
 
