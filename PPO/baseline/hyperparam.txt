@@ -1,0 +1,10 @@
+hidden dim:  64
+max_episode:  50000
+log_interval: 320
+update_episode:  320
+learning rate:  0.001
+gamma:  0.99
+K_epoch:  4
+clipping:  0.2
+test_loop:  10
+folder:  ./PPO/baseline
