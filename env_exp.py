@@ -186,8 +186,8 @@ if __name__ == "__main__":
             # action_striker = np.random.randint(7, size=16, dtype=int)
             # action_goalie = np.random.randint(5, size=16, dtype=int)
 
-            action_striker[i] = np.random.randint(7)
-            action_goalie[i] = np.random.randint(5)
+            # action_striker[i] = np.random.randint(7)
+            # action_goalie[i] = np.random.randint(5)
 
             action_striker = np.array(action_striker)
             action_goalie = np.array(action_goalie)

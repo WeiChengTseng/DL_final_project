@@ -25,7 +25,7 @@ def eval_with_random_agent(net_striker,
                            device,
                            eval_epsoid=40):
     obs_striker, obs_goalie = env.reset('team')
-    time.sleep(5)
+    # time.sleep(5)
     epsoid = 0
     while epsoid < eval_epsoid:
         obs_striker = Variable(
@@ -238,8 +238,12 @@ def eval_compete_acppo(strikers,
         actions_goalie = probs_goalie.multinomial(1).data
 
         # print(actions_striker)
-        actions_striker = torch.cat((actions_striker, action_ppo_striker), dim=0)
-        actions_goalie = torch.cat((actions_goalie, action_ppo_goalie), dim=0)
+        # actions_striker = torch.cat((actions_striker, action_ppo_striker), dim=0)
+        # actions_goalie = torch.cat((actions_goalie, action_ppo_goalie), dim=0)
+        random_act_striker = torch.LongTensor(np.random.randint(7, size=(8,1)))
+        random_act_goalie = torch.LongTensor(np.random.randint(5, size=(8,1)))
+        actions_striker = torch.cat((random_act_striker, action_ppo_striker), dim=0)
+        actions_goalie = torch.cat((random_act_goalie, action_ppo_goalie), dim=0)
 
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
                                           order)
@@ -264,7 +268,7 @@ if __name__ == '__main__':
     # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
     # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
     net_path_large = './a2c/ckpt_wors_2e/a2cLarge_step39960000.pth'
-    # net_path_large = './a2c/ckpt_wors_2e/a2cLarge_step13920000.pth'
+    net_path_large2 = './a2c/ckpt_wors_2e/a2cLarge_step13920000.pth'
 
     ppo_striker = './ppo/ckpt/PPO_strikerSoccerTwos_9920.pth'
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
@@ -273,10 +277,16 @@ if __name__ == '__main__':
         policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
         policy_striker_large, policy_goalie_large, = A2CLarge(7).to(
             device), A2CLarge(5).to(device)
+        policy_striker_large2, policy_goalie_large2, = A2CLarge(7).to(
+            device), A2CLarge(5).to(device)
 
         ckpt_large = torch.load(net_path_large, map_location=device)
         policy_striker_large.load_state_dict(ckpt_large['striker_a2c'])
         policy_goalie_large.load_state_dict(ckpt_large['goalie_a2c'])
+
+        ckpt_large2 = torch.load(net_path_large2, map_location=device)
+        policy_striker_large2.load_state_dict(ckpt_large2['striker_a2c'])
+        policy_goalie_large2.load_state_dict(ckpt_large2['goalie_a2c'])
 
         ckpt = torch.load(net_path, map_location=device)
         policy_striker.load_state_dict(ckpt['striker_a2c'])
@@ -316,6 +326,13 @@ if __name__ == '__main__':
 
         # eval_agents_compete([policy_striker_large, policy_striker],
         #                     [policy_goalie_large, policy_goalie],
+        #                     env,
+        #                     device,
+        #                     order='team',
+        #                     eval_epsoid=100)
+
+        # eval_agents_compete([policy_striker_large, policy_striker_large2],
+        #                     [policy_goalie_large, policy_goalie_large2],
         #                     env,
         #                     device,
         #                     order='team',

@@ -203,3 +203,53 @@ class A2CLarge(nn.Module):
         v_out = self.v(shared_out)
 
         return pi_out, v_out
+
+class A2CLSTM(nn.Module):
+    def __init__(self, num_actions):
+        """ Basic convolutional actor-critic network for Atari 2600 games
+
+        Equivalent to the network in the original DQN paper.
+
+        Args:
+        - num_actions (int): the number of available discrete actions
+        """
+        super().__init__()
+
+        self.shared_net = nn.Sequential(nn.Linear(112, 128), nn.Tanh(),
+                                        nn.Linear(128, 128), nn.Tanh(),
+                                        nn.Linear(128, 64), nn.Tanh())
+
+        self.lstm = nn.LSTMCell(64, 64)
+
+        self.pi = nn.Linear(64, num_actions)
+        self.v = nn.Linear(64, 1)
+
+        self.num_actions = num_actions
+
+        # parameter initialization
+        self.apply(atari_initializer)
+        self.pi.weight.data = ortho_weights(self.pi.weight.size(), scale=.01)
+        self.v.weight.data = ortho_weights(self.v.weight.size())
+        return
+
+    def forward(self, conv_in, h, c):
+        """ Module forward pass
+
+        Args:
+        - conv_in (Variable): convolutional input, shaped [N x 4 x 84 x 84]
+
+        Returns:
+        - pi_out (Variable): action probability logits, 
+                             shaped [N x self.num_actions]
+        - v_out (Variable): value predictions, shaped [N x 1]
+        """
+        N = conv_in.size()[0]
+
+        shared_out = self.shared_net(conv_in).view(N, -1)
+
+        lstm_out = self.lstm(shared_out, (h, c))
+
+        pi_out = self.pi(shared_out)
+        v_out = self.v(shared_out)
+
+        return pi_out, v_out
