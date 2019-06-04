@@ -1,17 +1,26 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from maddpg_model import Critic,Goalie,Striker
-# from memory import Experience
+from memory import Experience
 from copy import deepcopy
 import os
 from torch.optim import Adam
 import winsound
+
+
+def soft_update(target, source, t):
+    for target_param, source_param in zip(target.parameters(),
+                                          source.parameters()):
+        target_param.data.copy_(
+            (1 - t) * target_param.data + t * source_param.data)
+
 class Maddpg:
-    def __init__(self, n_striker = 2,n_goalie = 2, g_dim_act = 5,use_cuda = True,lr = 0.0001,
-                dim_obs = 112, s_dim_act = 7, batchSize_d2 = 512, episode_before_training = 0, GAMMA = 1.):
+    def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.0001,
+                dim_obs = 112, s_dim_act = 7, batchSize_d2 = 1024, episode_before_training = 1024 * 10, GAMMA = 1., scale_reward = 1.):
         if n_striker != n_goalie:
             winsound.Beep(800,2000)
-            os.system('shutdown -s -t 0') 
+            # os.system('shutdown -s -t 0') 
             raise EnvironmentError("GAN")
         
         self.lr = lr
@@ -20,22 +29,23 @@ class Maddpg:
         self.n_goalie = n_goalie
         self.batchSize_d2 = batchSize_d2
         self.dim_obs = dim_obs
+        self.scale_reward = scale_reward
+        self.tau = 0.01
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() and use_cuda else "cpu")
+
         self.g_dim_act = g_dim_act
         self.s_dim_act = s_dim_act
         self.episode_before_training = episode_before_training
-        self.s_actor = [Striker(self.dim_obs,self.s_dim_act) for i in range(self.n_striker)]
-        self.s_critic = [Critic(n_goalie+n_striker,self.dim_obs,self.s_dim_act) for i in range(self.n_striker)]
-        self.g_actors = [Goalie(self.dim_obs,self.g_dim_act) for i in range(self.n_goalie)]
-
-        self.g_critic = [Critic(n_goalie+n_striker,self.dim_obs,self.g_dim_act) for i in range(self.n_goalie)]
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() and use_cuda else "cpu")
-        self.s_actors_target = deepcopy(self.s_actors)
-        self.s_critic_optimizer = [Adam(x.parameters(),
-                                      lr=lr) for x in self.s_critic]
+        self.s_actor = [Striker(self.dim_obs,self.s_dim_act).to(self.device) for i in range(self.n_striker)]
+        self.critic = [Critic(4,self.dim_obs,self.s_dim_act).to(self.device) for i in range(self.n_striker+self.n_goalie)]
+        self.g_actor = [Goalie(self.dim_obs,self.g_dim_act).to(self.device) for i in range(self.n_goalie)]
+        self.s_actors_target = deepcopy(self.s_actor)
+        self.g_actors_target = deepcopy(self.g_actor)
+        self.critic_target = deepcopy(self.critic)
+        self.critic_optimizer = [Adam(x.parameters(),
+                                      lr=lr) for x in self.critic]
         self.s_actor_optimizer = [Adam(x.parameters(),
                                      lr=lr) for x in self.s_actor]
-        self.g_critic_optimizer = [Adam(x.parameters(),
-                                      lr=lr) for x in self.g_critic]
         self.g_actor_optimizer = [Adam(x.parameters(),
                                      lr=lr) for x in self.g_actor]
         
@@ -44,117 +54,192 @@ class Maddpg:
         self.episode_done = 0
     def select_action(self, striker_batch, goalie_batch):
         # state_batch: n_agents x state_dim
-        s_actions = torch.zeros(self.n_striker,self.s_dim_act).to(self.device)
-        g_actions = torch.zeros(self.n_goalie,self.g_dim_act).to(self.device)
         striker_batch = torch.from_numpy(striker_batch)
         goalie_batch = torch.from_numpy(goalie_batch)
         striker_batch = striker_batch.to(self.device)
         goalie_batch = goalie_batch.to(self.device)
-        # FloatTensor = torch.cuda.FloatTensor if self.use_cuda else th.FloatTensor
-        for i in range(self.n_striker):
-            s_b = striker_batch[i, :].detach().float()
-            g_b = goalie_batch[i, :].detach().float()
-            self.s_actor[i] = self.s_actor[i].to(self.device)
-            self.g_actor[i] = self.g_actor[i].to(self.device)
-            s_act = self.s_actor[i](s_b.unsqueeze(0)).squeeze()
-            g_act = self.g_actor[i](g_b.unsqueeze(0)).squeeze()
-
-            s_actions[i, :] = s_act
-            g_actions[i, :] = g_act
+        striker_batch = striker_batch.view(-1,112)
+        
+        goalie_batch = goalie_batch.view(-1,112)
+        
+        s_b = striker_batch.detach().float()
+        g_b = goalie_batch.detach().float()
+        s_act = self.s_actor[0](s_b.unsqueeze(0)).squeeze()
+        g_act = self.g_actor[0](g_b.unsqueeze(0)).squeeze()
         self.steps_done += 1
 
-        return s_actions, g_actions
+        return s_act, g_act
 
-    def update_policy(self, striker_memory, goalie_memory):
+    def update_policy(self, memory):
+
+        # momory format is memory.push(prev_state, states, [prev_action_striker, prev_action_goalie], prev_reward)
         # do not train until exploration is enough
         # if self.episode_done <= self.episode_before_training:
-        #     return None, None
-
-        ByteTensor = torch.cuda.ByteTensor
-        FloatTensor = torch.cuda.FloatTensor
+            # return None, None
 
         c_loss = []
         a_loss = []
-        print("FUCK!")
+        
+        if len(memory) < 1024*10:
+            return None, None
         for agent_index in range(self.n_striker):
-            s_transitions = striker_memory.sample(self.batchSize_d2)
-            g_transitions = goalie_memory.sample(self.batchSize_d2)
-            s_batch = Experience(*zip(*s_transitions))
-            g_batch = Experience(*zip(*g_transitions))
+
+            #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   # 
+            # batch sample is batch * N play ground * agents * state/next_state/action/reward/      #
+            #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #
             
-            s_non_final_mask = ByteTensor(list(map(lambda s: s is not None,
-                                                    s_batch.next_states)))
-            g_non_final_mask = ByteTensor(list(map(lambda s: s is not None,
-                                                    g_batch.next_states)))
+            transitions = memory.sample(self.batchSize_d2)
+            batch = Experience(*zip(*transitions))
+
+            batch_state = np.asarray(batch.states)
+            batch_action = np.asarray(batch.actions)
+            batch_reward = np.asarray(batch.rewards)
+            batch_reward = torch.from_numpy(batch_reward).to(self.device).float()
+            batch_next_state = np.asarray(batch.next_state)
             
-            # state_batch: batch_size x n_agents x dim_obs
-            s_state_batch = torch.stack(s_batch.states).type(FloatTensor)
-            s_action_batch = torch.stack(s_batch.actions).type(FloatTensor)
-            s_reward_batch = torch.stack(s_batch.rewards).type(FloatTensor)
-            g_state_batch = torch.stack(g_batch.states).type(FloatTensor)
-            g_action_batch = torch.stack(g_batch.actions).type(FloatTensor)
-            g_reward_batch = torch.stack(g_batch.rewards).type(FloatTensor)
+            state_batch = torch.from_numpy(batch_state)
+            action_batch = torch.from_numpy(batch_action)
+            next_state_batch = torch.from_numpy(batch_next_state)
+            #   #   #   #   #   #   #   #   #
+            # total numbers of data = batchsize * play ground   #
+                                #   #   #   #   #   #   #   #   #
+            total_numbers_of_data = batch_state.shape[0]* batch_state.shape[1]
             
-            # : (batch_size_non_final) x n_agents x dim_obs
-            s_non_final_next_states = torch.stack(
-                [s for s in s_batch.next_states
-                 if s is not None]).type(FloatTensor)
-            g_non_final_next_states = torch.stack(
-                [s for s in g_batch.next_states
-                 if s is not None]).type(FloatTensor)
+        
+            whole_state = state_batch.view(total_numbers_of_data, -1).to(self.device).float()
+            whole_action = action_batch.view(total_numbers_of_data * 4,-1).long()
+
+            #   #   #   #
+            # translate action into one hot #
+                                #   #   #   #    
+            one_hot = (whole_action == torch.arange(7).reshape(1,7)).float()
+            one_hot = one_hot.view(total_numbers_of_data , -1).to(self.device)
+             
+            self.critic_optimizer[0].zero_grad()
+            self.critic_optimizer[1].zero_grad()
             
-            # for current agent
-            s_whole_state = s_state_batch.view(self.batchSize_d2, -1)
-            s_whole_action = s_action_batch.view(self.batchSize_d2, -1)
-            g_whole_state = g_state_batch.view(self.batchSize_d2, -1)
-            g_whole_action = g_action_batch.view(self.batchSize_d2, -1)
-            # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-            # PADDING ZERO                                            #
-            # If enivronment > 5 -> 0                                 #
-            # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-            self.s_critic_optimizer[agent_index].zero_grad()
-            self.g_critic_optimizer[agent_index].zero_grad()
-            current_Q = self.critics[agent_index](whole_state, whole_action)
+            s_current_Q = self.critic[0](whole_state, one_hot)
+            g_current_Q = self.critic[1](whole_state, one_hot)
+            s_whole_next_state = next_state_batch[:,:,0:2,:].to(self.device).float()
+            s_whole_next_state = s_whole_next_state.view(total_numbers_of_data*2,-1)
+            
+            g_whole_next_state = next_state_batch[:,:,2:4,:].to(self.device).float()
+            g_whole_next_state = g_whole_next_state.view(total_numbers_of_data*2,-1)
+            #   #   #
+            # Next_actions  #
+                    #   #   #
+            s_next_actions = [self.s_actors_target[0](s_whole_next_state)]
+            g_next_actions = [self.g_actors_target[0](g_whole_next_state)]
+            s_next_actions = torch.stack(s_next_actions)
+            g_next_actions = torch.stack(g_next_actions)
+            s_next_actions = (s_next_actions.transpose(0,1).contiguous())
+            g_next_actions = (g_next_actions.transpose(0,1).contiguous())
 
-            non_final_next_actions = [
-                self.actors_target[i](non_final_next_states[:,i,:])
-                                        for i in range(self.n_agents)]
-            non_final_next_actions = torch.stack(non_final_next_actions)
-            non_final_next_actions = (
-                non_final_next_actions.transpose(0,1).contiguous())
+            
+            s_next_state = s_whole_next_state.view(-1,2,112).to(self.device)
+            g_next_state = g_whole_next_state.view(-1,2,112).to(self.device)
+            whole_next_stat = torch.cat([s_next_state,g_next_state], dim = -2)
+            
+            s_next_actions = s_next_actions.view(-1,14).to(self.device)
+            g_next_actions = g_next_actions.view(-1,14).to(self.device)
+            whole_next_action = torch.cat([s_next_actions,g_next_actions],dim = -1)
+            
+            whole_next_stat = whole_next_stat.view(-1,112*4)
+            whole_next_action = whole_next_action.view(-1,7*4)
+            
+            s_target_Q = self.critic_target[0](whole_next_stat,whole_next_action)
+            g_target_Q = self.critic_target[1](whole_next_stat,whole_next_action)
+            # scale_reward: to scale reward in Q functions
+            batch_reward = batch_reward.view(64,-1)
+            
+            s_1_target_Q = (s_target_Q * self.GAMMA) + (batch_reward[:, 0].unsqueeze(1) * self.scale_reward)
+            s_2_target_Q = (s_target_Q * self.GAMMA) + (batch_reward[:, 1].unsqueeze(1) * self.scale_reward)
+            g_1_target_Q = (g_target_Q * self.GAMMA) + (batch_reward[:, 2].unsqueeze(1) * self.scale_reward)
+            g_2_target_Q = (g_target_Q * self.GAMMA) + (batch_reward[:, 3].unsqueeze(1) * self.scale_reward)
+            # 64 *1 
 
-            target_Q = torch.zeros(self.batchSize_d2).type(FloatTensor)
+            # # #
+            # Update first striker #
+                               # # #
+            s_1_loss_Q = nn.MSELoss()(s_current_Q, s_1_target_Q.detach())
+            s_1_loss_Q.backward(retain_graph = True)
+            self.critic_optimizer[0].step()
+            
+            # # #
+            # Update 2nd striker #
+                             # # #
+            # print(s_2_target_Q)
+            self.critic_optimizer[0].zero_grad()
+            s_2_loss_Q = nn.MSELoss()(s_current_Q, s_2_target_Q.detach())
+            s_2_loss_Q.backward()
+            self.critic_optimizer[0].step()
+            
+            # # #
+            # Update first goalie #
+                              # # #
+            self.critic_optimizer[1].zero_grad()
+            g_1_loss_Q = nn.MSELoss()(g_current_Q, g_1_target_Q.detach())
+            g_1_loss_Q.backward(retain_graph = True)
+            self.critic_optimizer[1].step()
 
-            # target_Q[non_final_mask] = self.critics_target[agent](
-                # non_final_next_states.view(-1, self.n_agents * self.n_states),
-                # non_final_next_actions.view(-1,self.n_agents * self.n_actions)).squeeze()
-        #     # scale_reward: to scale reward in Q functions
+            # # #
+            # Update 2nd goalie #
+                            # # #
+            self.critic_optimizer[1].zero_grad()
+            g_2_loss_Q = nn.MSELoss()(g_current_Q, g_2_target_Q.detach())
+            g_2_loss_Q.backward()
+            self.critic_optimizer[1].step()
 
-            # target_Q = (target_Q.unsqueeze(1) * self.GAMMA) + (
-                # reward_batch[:, agent].unsqueeze(1) * scale_reward)
 
-            # loss_Q = nn.MSELoss()(current_Q, target_Q.detach())
-            # loss_Q.backward()
-            # self.critic_optimizer[agent_index].step()
 
-            # self.actor_optimizer[agent_index].zero_grad()
+            self.s_actor_optimizer[agent_index].zero_grad()
+            self.g_actor_optimizer[agent_index].zero_grad()
             # state_i = state_batch[:, agent_index, :]
             # action_i = self.actors[agent_index](state_i)
-            # ac = action_batch.clone()
-            # ac[:, agent_index, :] = action_i
-            # whole_action = ac.view(self.batch_size, -1)
-            # actor_loss = -self.critics[agent_index](whole_state, whole_action)
-            # actor_loss = actor_loss.mean()
-            # actor_loss.backward()
-            # self.actor_optimizer[agent_index].step()
-            # c_loss.append(loss_Q)
-            # a_loss.append(actor_loss)
 
-        # if self.steps_done % 100 == 0 and self.steps_done > 0:
-        #     for i in range(self.n_agents):
-        #         soft_update(self.critics_target[i], self.critics[i], self.tau)
-        #         soft_update(self.actors_target[i], self.actors[i], self.tau)
+            s_state = batch_state[:,:,0:2,:]
+            s_state = torch.from_numpy(s_state).to(self.device).float()
+            s_state = s_state.view(total_numbers_of_data*2,-1)
+            g_state = batch_state[:,:,2:4,:]
+            g_state = torch.from_numpy(g_state).to(self.device).float()
+            g_state = g_state.view(total_numbers_of_data*2,-1)
+            s_action = self.s_actor[agent_index](s_state)
+            g_action = self.g_actor[agent_index](g_state)
+            # # #
+            # striker #
+                    # #
+            s_ac = one_hot.clone()# 8*8 * 7
+            g_ac = one_hot.clone()
+            s_action = s_action.view(-1,1,7).to(self.device)
+            g_action = g_action.view(-1,1,7).to(self.device)
+            # print(s_action.shape)
+            s_ac = s_ac.view(-1,2,7)
+            # print(s_ac.shape)
+            s_ac[:, 0] = s_action.squeeze()
+            g_ac = g_ac.view(-1,2,7)
+            g_ac[:, 1] = g_action.squeeze()
+            sup_action = s_ac.view(total_numbers_of_data, -1)
+            gup_action = g_ac.view(total_numbers_of_data, -1)
+            sactor_loss = -self.critic[0](whole_state, sup_action)
+            sactor_loss = sactor_loss.mean()
+            sactor_loss.backward()
+            gactor_loss = -self.critic[1](whole_state, gup_action)
+            gactor_loss = gactor_loss.mean()
+            gactor_loss.backward()
+            self.s_actor_optimizer[agent_index].step()
+            self.g_actor_optimizer[agent_index].step()
+            # # #
+            # goalie #
+                   # #
+            c_loss.append(s_1_loss_Q + s_2_loss_Q + g_1_loss_Q + g_2_loss_Q)
+            a_loss.append(sactor_loss + gactor_loss)
 
+        if self.steps_done % 100 == 0 and self.steps_done > 0:
+            soft_update(self.critic_target[0], self.critic[0], self.tau)
+            soft_update(self.s_actors_target[0], self.s_actor[0], self.tau)
+            soft_update(self.critic_target[1], self.critic[1], self.tau)
+            soft_update(self.g_actors_target[0], self.g_actor[0], self.tau)
+            
         return c_loss, a_loss
 
 if __name__ == "__main__":
