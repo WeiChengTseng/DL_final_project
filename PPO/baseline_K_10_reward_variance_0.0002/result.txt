@@ -1,0 +1,90 @@
+Now time:  2019-06-04 21:27:03.309968
+episode: 320 stocastic result:  36.25
+======================
+Now time:  2019-06-04 21:31:30.185892
+episode: 640 stocastic result:  42.5
+======================
+Now time:  2019-06-04 21:36:23.463265
+episode: 960 stocastic result:  37.5
+======================
+Now time:  2019-06-04 21:40:48.681530
+episode: 1280 stocastic result:  37.5
+======================
+Now time:  2019-06-04 21:45:49.072537
+episode: 1600 stocastic result:  31.25
+======================
+Now time:  2019-06-04 21:50:18.322843
+episode: 1920 stocastic result:  30.0
+======================
+Now time:  2019-06-04 21:54:42.046102
+episode: 2240 stocastic result:  45.0
+======================
+Now time:  2019-06-04 21:59:02.634838
+episode: 2560 stocastic result:  38.75
+======================
+Now time:  2019-06-04 22:03:14.587908
+episode: 2880 stocastic result:  43.75
+======================
+Now time:  2019-06-04 22:07:25.600152
+episode: 3200 stocastic result:  50.0
+======================
+Now time:  2019-06-04 22:11:28.763988
+episode: 3520 stocastic result:  50.0
+======================
+Now time:  2019-06-04 22:15:54.654464
+episode: 3840 stocastic result:  66.25
+======================
+Now time:  2019-06-04 22:19:58.323524
+episode: 4160 stocastic result:  66.25
+======================
+Now time:  2019-06-04 22:23:14.633743
+episode: 4480 stocastic result:  72.5
+======================
+Now time:  2019-06-04 22:26:20.140718
+episode: 4800 stocastic result:  92.5
+======================
+Now time:  2019-06-04 22:29:44.801406
+episode: 5120 stocastic result:  93.75
+======================
+Now time:  2019-06-04 22:32:42.123609
+episode: 5440 stocastic result:  96.25
+======================
+Now time:  2019-06-04 22:35:19.584955
+episode: 5760 stocastic result:  92.5
+======================
+Now time:  2019-06-04 22:38:09.982226
+episode: 6080 stocastic result:  98.75
+======================
+Now time:  2019-06-04 22:40:37.533438
+episode: 6400 stocastic result:  98.75
+======================
+Now time:  2019-06-04 22:42:47.002312
+episode: 6720 stocastic result:  98.75
+======================
+Now time:  2019-06-04 22:45:19.258910
+episode: 7040 stocastic result:  90.0
+======================
+Now time:  2019-06-04 22:48:05.804147
+episode: 7360 stocastic result:  100.0
+======================
+Now time:  2019-06-04 22:50:06.061865
+episode: 7680 stocastic result:  100.0
+======================
+Now time:  2019-06-04 22:52:45.745241
+episode: 8000 stocastic result:  92.5
+======================
+Now time:  2019-06-04 22:55:08.403633
+episode: 8320 stocastic result:  100.0
+======================
+Now time:  2019-06-04 22:57:26.585547
+episode: 8640 stocastic result:  100.0
+======================
+Now time:  2019-06-04 22:59:17.208049
+episode: 8960 stocastic result:  98.75
+======================
+Now time:  2019-06-04 23:01:57.682472
+episode: 9280 stocastic result:  100.0
+======================
+Now time:  2019-06-04 23:04:28.904225
+episode: 9600 stocastic result:  98.75
+======================
