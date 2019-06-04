@@ -12,10 +12,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--hidden', type=int, default=64, help='hidden layer dim')
-parser.add_argument('--max_episode', type=int, default=50000, help='max episode number')
-parser.add_argument('--update_episode', type=float, default=0.001, help='update episode number')
+parser.add_argument('--max_episode', type=int, default=9600, help='max episode number')
+parser.add_argument('--update_episode', type=int, default=640, help='update episode number')
 parser.add_argument('--log_interval', type=int, default=320, help='log_interval')
-parser.add_argument('--lr',default = 0.001, type=float, help='learning rate')
+parser.add_argument('--lr',default = 1e-3, type=float, help='learning rate')
 parser.add_argument('--gamma',default = 0.99, type=float,help = 'discount')
 parser.add_argument('--K_epochs',default = 4, type=int, help='K_epochs')
 parser.add_argument('--eps_clip',default = 0.2, type=float, help='clipping expilson')
@@ -26,7 +26,7 @@ opt = parser.parse_args()
 if not os.path.exists(opt.folder):
     os.makedirs(opt.folder)
 env_path = './env/linux/soccer_test.x86_64'
-env = SocTwoEnv(env_path, worker_id=1, train_mode=True)
+env = SocTwoEnv(env_path, worker_id=2, train_mode=True)
 
 f_h = open(opt.folder+"/hyperparam.txt","a")
 print("hidden dim: ", opt.hidden, file=f_h)
@@ -111,26 +111,21 @@ while i_episode < (max_episodes):
     while True:
 
         # testing
-        if (((i_episode) % log_interval == 0)and (temp == 0)):
+        if (((i_episode) % log_interval == 0)and (temp == 0) and (i_episode!=0)):
             iter_test = 0
             state_striker, state_goalie = env.reset()
             while iter_test < test_loop:
                 while True:
                     action_striker = ppo_striker.policy.act_test(state_striker, action_dim_striker)
                     action_goalie = ppo_goalie.policy.act_test(state_goalie, action_dim_goalie)
-                    print("mask_striker: ",mask_striker)
-                    print("mask_goalie: ",mask_goalie)
-                    print("=========================")
-                    exit()
-                    action_striker[mask_striker] = 0
                     action_goalie[mask_goalie] = 0
+                    action_striker[mask_striker] = 0
                     states, reward, done, _ = env.step(action_striker, action_goalie)
 
                     state_striker = states[0] 
                     state_goalie = states[1]
                     
                     done[0][mask_striker] = True
-                    
                     done[1][mask_goalie] = True
                     
             
@@ -143,15 +138,9 @@ while i_episode < (max_episodes):
                         if i in np.argwhere(mask_goalie==False):
                             mask_goalie[i] = True
 
-                    
                     if (len(np.argwhere(done[0]).flatten())+ len(np.argwhere(done[1]).flatten()) == 32):
-                        memory_goalie.update_record()
-                        memory_striker.update_record()
-                        
                         win = test_str_reward >0
-
                         red=len(np.argwhere(win[:8]==True))
-                        
                         win_prob += [(red/8)*100]
                         mask_striker[:] = False
                         mask_goalie[:] = False
@@ -166,7 +155,7 @@ while i_episode < (max_episodes):
                             print("======================", file=f)
                             f.close()
                             win_prob = []
-                            
+
                         state_striker, state_goalie = env.reset()
                         temp = 1
                         break
@@ -178,11 +167,16 @@ while i_episode < (max_episodes):
         action_striker = ppo_striker.policy_old.act(state_striker,
                                                     memory_striker)
         action_goalie = ppo_goalie.policy_old.act(state_goalie, memory_goalie)
-        action_striker[mask_striker] = 0
+
         action_goalie[mask_goalie] = 0
+        action_striker[mask_striker] = 0
+
         states, reward, done, _ = env.step(action_striker, action_goalie)
         state_striker = states[0]
         state_goalie = states[1]
+
+        done[0][mask_striker] = True
+        done[1][mask_goalie] = True
 
         # Saving reward:
         memory_striker.update_reward(reward[0], done[0])
@@ -191,9 +185,8 @@ while i_episode < (max_episodes):
         running_reward_striker += reward[0]
         running_reward_goalie += reward[1]
 
-        done[0][mask_striker] = True
-        done[1][mask_goalie] = True
         
+
         for i in np.argwhere(done[0]==True):
             if i in np.argwhere(mask_striker==False):
                 mask_striker[i] = True
@@ -204,17 +197,18 @@ while i_episode < (max_episodes):
         
         if (len(np.argwhere(done[0]).flatten())+ len(np.argwhere(done[1]).flatten()) == 32):
             i_episode += 32
-            memory_goalie.update_record()
             memory_striker.update_record()
+            memory_goalie.update_record()
             
             mask_striker[:] = False
             mask_goalie[:] = False
             count +=1
             temp = 0
+            state_striker, state_goalie = env.reset()
 
             break
 
-    if (i_episode) % update_episode == 0:
+    if ((i_episode) % update_episode == 0):
         ppo_striker.update(memory_striker)
         ppo_goalie.update(memory_goalie)
         memory_striker.clear_memory()
@@ -227,7 +221,7 @@ while i_episode < (max_episodes):
     timestep_striker[:] = 0
 
     # logging
-    if (i_episode % 10 == 0):
+    if (i_episode % 64 == 0):
         print("episode: ",i_episode)
     if ((i_episode % log_interval) == 0):
         

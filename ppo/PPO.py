@@ -30,17 +30,16 @@ class ActorCritic(nn.Module):
 
     def act_test(self, state, action_dim):
 
-        model_state = torch.from_numpy(state[:8]).float().to(self.device)
-        self.action_layer = self.action_layer.eval()
-        model_action = self.action_layer(model_state)
-        index = torch.argmax(model_action, 1)
+        model_state = torch.from_numpy(state).float().to(self.device)
+        with torch.no_grad():
+            model_action = self.action_layer(model_state[:8])
+            index = torch.argmax(model_action, 1)
 
-        model_index = index.detach().numpy()
+            model_index = index.detach().numpy()
 
-        random_action = np.random.randint(0, action_dim, size=8)
+            random_action = np.random.randint(0, action_dim,size=8)
 
-        actions = np.concatenate((model_index, random_action), axis=None)
-        self.action_layer = self.action_layer.train()
+            actions = np.concatenate((model_index, random_action),axis=None)
         return actions
 
     def act(self, state, memory=None):
