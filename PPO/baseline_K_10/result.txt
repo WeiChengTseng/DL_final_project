@@ -1,0 +1,58 @@
+episode: 320 stocastic result:  13.75
+======================
+episode: 640 stocastic result:  20.0
+======================
+episode: 960 stocastic result:  46.25
+======================
+episode: 1280 stocastic result:  35.0
+======================
+episode: 1600 stocastic result:  38.75
+======================
+episode: 1920 stocastic result:  48.75
+======================
+episode: 2240 stocastic result:  43.75
+======================
+episode: 2560 stocastic result:  63.75
+======================
+episode: 2880 stocastic result:  57.5
+======================
+episode: 3200 stocastic result:  46.25
+======================
+episode: 3520 stocastic result:  57.5
+======================
+episode: 3840 stocastic result:  68.75
+======================
+episode: 4160 stocastic result:  80.0
+======================
+episode: 4480 stocastic result:  87.5
+======================
+episode: 4800 stocastic result:  80.0
+======================
+episode: 5120 stocastic result:  96.25
+======================
+episode: 5440 stocastic result:  90.0
+======================
+episode: 5760 stocastic result:  85.0
+======================
+episode: 6080 stocastic result:  95.0
+======================
+episode: 6400 stocastic result:  95.0
+======================
+episode: 6720 stocastic result:  96.25
+======================
+episode: 7040 stocastic result:  85.0
+======================
+episode: 7360 stocastic result:  96.25
+======================
+episode: 7680 stocastic result:  98.75
+======================
+episode: 8000 stocastic result:  90.0
+======================
+episode: 8320 stocastic result:  93.75
+======================
+episode: 8640 stocastic result:  95.0
+======================
+episode: 8960 stocastic result:  95.0
+======================
+episode: 9280 stocastic result:  96.25
+======================

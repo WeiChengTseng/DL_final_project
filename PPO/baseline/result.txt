@@ -1,0 +1,62 @@
+stocastic result:  38.75
+======================
+stocastic result:  40.0
+======================
+stocastic result:  30.0
+======================
+stocastic result:  40.0
+======================
+stocastic result:  42.5
+======================
+stocastic result:  42.5
+======================
+stocastic result:  47.5
+======================
+stocastic result:  41.25
+======================
+stocastic result:  37.5
+======================
+stocastic result:  35.0
+======================
+stocastic result:  43.75
+======================
+stocastic result:  45.0
+======================
+stocastic result:  31.25
+======================
+stocastic result:  40.0
+======================
+stocastic result:  37.5
+======================
+stocastic result:  66.25
+======================
+stocastic result:  67.5
+======================
+stocastic result:  82.5
+======================
+stocastic result:  96.25
+======================
+stocastic result:  83.75
+======================
+stocastic result:  77.5
+======================
+stocastic result:  88.75
+======================
+stocastic result:  85.0
+======================
+stocastic result:  82.5
+======================
+stocastic result:  85.0
+======================
+stocastic result:  70.0
+======================
+stocastic result:  66.25
+======================
+stocastic result:  75.0
+======================
+stocastic result:  72.5
+======================
+stocastic result:  86.25
+======================
+stocastic result:  93.75
+======================
