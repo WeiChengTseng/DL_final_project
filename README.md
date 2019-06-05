@@ -27,5 +27,6 @@ Model are all saved in ./PPO/
 
 ### Multi-Agent Method
 - MADDPG
-- TBD
+- MAAC
+    - developed by Wei-Cheng Tseng
 
