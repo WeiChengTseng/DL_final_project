@@ -169,6 +169,7 @@ def eval_agents_compete(strikers,
     policies_striker = [None, None]
     policies_goalie = [None, None]
     # time.sleep(5)
+    records = [0] * 3
 
     epsoid = 0
     while epsoid < eval_epsoid:
@@ -199,8 +200,16 @@ def eval_agents_compete(strikers,
         rewards_goalie = torch.from_numpy(
             rewards[1]).float().unsqueeze(1).to(device)
 
-        for i in np.argwhere(dones[0]).flatten():
+        for i in np.argwhere(dones[0][:8]).flatten():
             epsoid += 1
+            if rewards[1][i+8]<0:
+                records[0]+=1
+            elif rewards[0][i]<0:
+                records[1]+=1
+            else:
+                records[2]+=1
+
+    print(records)
     return
 
 
@@ -210,10 +219,12 @@ def eval_compete_acppo(strikers,
                        device,
                        order='team',
                        eval_epsoid=40):
+    # env.train()
     obs_striker, obs_goalie = env.reset(order)
     policies_striker = [None, None]
     policies_goalie = [None, None]
     # time.sleep(5)
+    records = [0] * 3
 
     epsoid = 0
     while epsoid < eval_epsoid:
@@ -254,13 +265,21 @@ def eval_compete_acppo(strikers,
         rewards_goalie = torch.from_numpy(
             rewards[1]).float().unsqueeze(1).to(device)
 
-        for i in np.argwhere(dones[0]).flatten():
+        for i in np.argwhere(dones[0][:8]).flatten():
             epsoid += 1
+            if rewards[1][i+8]<0:
+                records[0]+=1
+            elif rewards[1][i]<0:
+                records[1]+=1
+            else:
+                records[2]+=1
+
+    print(records)
     return
 
 
 if __name__ == '__main__':
-    env_path = './env/macos/SoccerTwosFast.app'
+    env_path = './env/macos/SoccerTwosBeta.app'
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
     # net_path = './a2c/ckpt/a2c_step20320000.pth'
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

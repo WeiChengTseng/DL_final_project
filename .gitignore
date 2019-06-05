@@ -129,3 +129,4 @@ server/
 ckpt/
 
 *.pth
+.DS_Store
