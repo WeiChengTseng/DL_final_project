@@ -14,7 +14,10 @@ For Windows, the build binary file is in `./env/windows/soccer_twos`
 ### Baselines
 - PPO
     - developed by Po-Han Chi
-
+    - python main_ppo.py --folder ./PPO/{your name} --rewards_add True --reward_addtion 0.0002
+    - python main_ppo.py --folder ./PPO/{your name} --rewards_add False
+ Model are all saved in ./PPO/
+ 
 - A2C
     - developed by Wei-Cheng Tseng
     - python main_a2c.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --reward_shaping True
