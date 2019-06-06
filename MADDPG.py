@@ -15,11 +15,17 @@ def soft_update(target, source, t):
         target_param.data.copy_(
             (1 - t) * target_param.data + t * source_param.data)
 
+        #Maddpg_ = Maddpg(n_striker = 1,n_goalie = 1, g_dim_act = 5, use_cuda = True,lr = lr,
+        #        dim_obs = 112, s_dim_act = 7, batchSize_d2 = batchSize_d2, episode_before_training = episode_before_training,
+        #        GAMMA = gamma, scale_reward = scale_reward, tau = tau, update_timestep = update_timestep)
+        
+        
 class Maddpg:
-    def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.0001,
-                dim_obs = 112, s_dim_act = 7, batchSize_d2 = 1024, episode_before_training = 1024 * 10, GAMMA = 1., scale_reward = 1.):
+    def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.001,
+                dim_obs = 112, s_dim_act = 7, batchSize_d2 = batchSize_d2, episode_before_training = episode_before_training,
+                GAMMA = gamma, scale_reward = scale_reward, tau = tau, update_timestep = update_timestep):
         if n_striker != n_goalie:
-            winsound.Beep(800,2000)
+            # winsound.Beep(800,2000)
             # os.system('shutdown -s -t 0') 
             raise EnvironmentError("GAN")
         
@@ -30,9 +36,9 @@ class Maddpg:
         self.batchSize_d2 = batchSize_d2
         self.dim_obs = dim_obs
         self.scale_reward = scale_reward
-        self.tau = 0.01
+        self.tau = tau
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and use_cuda else "cpu")
-
+        self.update_timestep = update_timestep
         self.g_dim_act = g_dim_act
         self.s_dim_act = s_dim_act
         self.episode_before_training = episode_before_training
@@ -80,7 +86,7 @@ class Maddpg:
         c_loss = []
         a_loss = []
         
-        if len(memory) < 1024*10:
+        if len(memory) < self.episode_before_training:
             return None, None
         for agent_index in range(self.n_striker):
 
@@ -234,7 +240,7 @@ class Maddpg:
             c_loss.append(s_1_loss_Q + s_2_loss_Q + g_1_loss_Q + g_2_loss_Q)
             a_loss.append(sactor_loss + gactor_loss)
 
-        if self.steps_done % 100 == 0 and self.steps_done > 0:
+        if self.steps_done % self.update_timestep == 0 and self.steps_done > 0:
             soft_update(self.critic_target[0], self.critic[0], self.tau)
             soft_update(self.s_actors_target[0], self.s_actor[0], self.tau)
             soft_update(self.critic_target[1], self.critic[1], self.tau)
