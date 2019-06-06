@@ -32,17 +32,19 @@ log_interval = 100      # print avg reward in the interval
 update_timestep = 5        # update policy every n timesteps 2000
 lr = 0.001
 gamma = 0.99            # discount factor
-K_epochs = 4            # update policy for K epochs
-eps_clip = 0.2          # clip parameter for PPO
+scale_reward = 1.          
 random_seed = None
- 
+episode_before_training = 256*10
+tau = 0.01
+batchSize_d2 = 256
 if random_seed:
     torch.manual_seed(random_seed)
     env.seed(random_seed)
  
 # memory_striker = Memory()
-Maddpg_ = Maddpg(n_striker = 1,n_goalie = 1, g_dim_act = 5, use_cuda = True,lr = 0.0001,
-                dim_obs = 112, s_dim_act = 7, batchSize_d2 = 8, episode_before_training = 0, GAMMA = 1., scale_reward = 1.)
+Maddpg_ = Maddpg(n_striker = 1,n_goalie = 1, g_dim_act = 5, use_cuda = True,lr = lr,
+                dim_obs = 112, s_dim_act = 7, batchSize_d2 = batchSize_d2, episode_before_training = episode_before_training,
+                GAMMA = gamma, scale_reward = scale_reward, tau = tau, update_timestep = update_timestep)
 # memory_goalie = Memory()
  
 # logging variables
