@@ -85,7 +85,7 @@ def main():
         states, reward, done, _ = env.step(action_striker, action_goalie, order = "field")
         
         if episode<500:
-            for i in range(action_striker):
+            for i in range(action_striker.shape[0]):
                 if action_striker[i] == 0:
                     reward[i] -=0.005
               
