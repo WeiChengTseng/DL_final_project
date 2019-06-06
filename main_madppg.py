@@ -83,7 +83,12 @@ def main():
         print(action_striker)
         print('action require: %f s' % (t2-t1))
         states, reward, done, _ = env.step(action_striker, action_goalie, order = "field")
-
+        
+        if episode<500:
+            for i in range(action_striker):
+                if i == 0:
+                    reward[i] -=0.005
+              
         states_temp = deepcopy(states)
         states_temp[0] = states_temp[0].reshape(-1, 2, 112)
         states_temp[1] = states_temp[1].reshape(-1, 2, 112)
