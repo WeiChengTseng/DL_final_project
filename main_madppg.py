@@ -86,7 +86,7 @@ def main():
         
         if episode<500:
             for i in range(action_striker):
-                if i == 0:
+                if action_striker[i] == 0:
                     reward[i] -=0.005
               
         states_temp = deepcopy(states)
