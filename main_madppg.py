@@ -8,7 +8,8 @@ from MADDPG import Maddpg
 from memory import ReplayMemory
 from copy import deepcopy
 import time
-env_path = r'env\windows\SoccerTwosBirdView\Unity Environment.exe'
+# env_path = r'env\windows\SoccerTwosBirdView\Unity Environment.exe'
+env_path = './env/macos/SoccerTwosBeta.app'
  
 env = SocTwoEnv(env_path, worker_id=2, train_mode=True)
  
@@ -80,8 +81,8 @@ def main():
         action_striker = np.argmax(action_striker.cpu().detach().numpy(), axis = 1)
         action_goalie = np.argmax(action_goalie.cpu().detach().numpy(), axis = 1)
         t2 = time.time()
-        print(action_striker)
-        print('action require: %f s' % (t2-t1))
+        # print(action_striker)
+        # print('action require: %f s' % (t2-t1))
         states, reward, done, _ = env.step(action_striker, action_goalie, order = "field")
 
         states_temp = deepcopy(states)
@@ -93,8 +94,8 @@ def main():
         t1 = time.time()
         loss_a , loss_c = Maddpg_.update_policy(memory)
         t2 = time.time()
-        print(loss_a,loss_c)
-        print('Update require: %f s' % (t2-t1))
+        # print(loss_a,loss_c)
+        # print('Update require: %f s' % (t2-t1))
         
         prev_states, prev_reward, prev_action_striker, prev_action_goalie = states, reward, action_striker, action_goalie
 

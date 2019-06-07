@@ -327,7 +327,8 @@ if __name__ == '__main__':
     # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
     # net_path_large = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
     net_path_large = './a2c/ckpt_wors_2e/a2cLarge_step39960000.pth'
-    net_path_large2 = './a2c/ckpt_wors_2e/a2cLarge_step13920000.pth'
+    # net_path_large2 = './a2c/ckpt_wors_2e/a2cLarge_step13920000.pth'
+    net_path_large2 = './a2c/ckpt_rs_large/a2cLarge_step36960000.pth'
 
     ppo_striker = './ppo/ckpt/PPO_strikerSoccerTwos_9920.pth'
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
@@ -380,7 +381,9 @@ if __name__ == '__main__':
 
         # eval_self_complete(policy_striker, policy_goalie, env, device, 'team')
 
-        # eval_self_complete(policy_striker_large, policy_striker_large, env,
+        eval_self_complete(policy_striker_large, policy_striker_large, env,
+                           device, 'team')
+        # eval_self_complete(policy_striker_large2, policy_striker_large2, env,
         #                    device, 'team')
 
         # eval_agents_compete([policy_striker_large, policy_striker],
@@ -397,10 +400,10 @@ if __name__ == '__main__':
         #                     order='team',
         #                     eval_epsoid=100)
 
-        eval_compete_acppo([policy_striker_large, ppo_striker],
-                            [policy_goalie_large, ppo_goalie],
-                            env,
-                            device,
-                            order='team',
-                            eval_epsoid=100)
+        # eval_compete_acppo([policy_striker_large, ppo_striker],
+        #                     [policy_goalie_large, ppo_goalie],
+        #                     env,
+        #                     device,
+        #                     order='team',
+        #                     eval_epsoid=100)
     pass
