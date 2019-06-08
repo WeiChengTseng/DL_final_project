@@ -21,9 +21,9 @@ def soft_update(target, source, t):
         
         
 class Maddpg:
-    def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.001,
-                dim_obs = 112, s_dim_act = 7, batchSize_d2 = batchSize_d2, episode_before_training = episode_before_training,
-                GAMMA = gamma, scale_reward = scale_reward, tau = tau, update_timestep = update_timestep):
+    def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.0001,
+                dim_obs = 112, s_dim_act = 7, batchSize_d2 = 512, GAMMA = 0.99, scale_reward = 1., 
+                tau = 0.01, update_timestep = 20):
         if n_striker != n_goalie:
             # winsound.Beep(800,2000)
             # os.system('shutdown -s -t 0') 
@@ -41,7 +41,6 @@ class Maddpg:
         self.update_timestep = update_timestep
         self.g_dim_act = g_dim_act
         self.s_dim_act = s_dim_act
-        self.episode_before_training = episode_before_training
         self.s_actor = [Striker(self.dim_obs,self.s_dim_act).to(self.device) for i in range(self.n_striker)]
         self.critic = [Critic(4,self.dim_obs,self.s_dim_act).to(self.device) for i in range(self.n_striker+self.n_goalie)]
         self.g_actor = [Goalie(self.dim_obs,self.g_dim_act).to(self.device) for i in range(self.n_goalie)]
@@ -86,8 +85,6 @@ class Maddpg:
         c_loss = []
         a_loss = []
         
-        if len(memory) < self.episode_before_training:
-            return None, None
         for agent_index in range(self.n_striker):
 
             #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   # 
@@ -156,7 +153,7 @@ class Maddpg:
             s_target_Q = self.critic_target[0](whole_next_stat,whole_next_action)
             g_target_Q = self.critic_target[1](whole_next_stat,whole_next_action)
             # scale_reward: to scale reward in Q functions
-            batch_reward = batch_reward.view(64,-1)
+            batch_reward = batch_reward.view(total_numbers_of_data,-1)
             
             s_1_target_Q = (s_target_Q * self.GAMMA) + (batch_reward[:, 0].unsqueeze(1) * self.scale_reward)
             s_2_target_Q = (s_target_Q * self.GAMMA) + (batch_reward[:, 1].unsqueeze(1) * self.scale_reward)
