@@ -183,8 +183,6 @@ class AttentionSAC(object):
         critic_in = list(zip(obs, samp_acs))
         critic_rets = self.critic(critic_in, return_all_q=True)
 
-        # print('='*10 + '\n', critic_rets)
-
         for a_i, probs, log_pi, pol_regs, (q, all_q) in zip(
                 range(self.nagents), all_probs, all_log_pis, all_pol_regs,
                 critic_rets):
@@ -337,7 +335,7 @@ class AttentionSAC(object):
         """
         Instantiate instance of this class from file created by 'save' method
         """
-        save_dict = torch.load(filename)
+        save_dict = torch.load(filename, map_location='cpu')
         instance = cls(**save_dict['init_dict'])
         instance.init_dict = save_dict['init_dict']
         for a, params in zip(instance.agents, save_dict['agent_params']):

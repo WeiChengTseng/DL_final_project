@@ -324,10 +324,9 @@ def eval_agents_compete_(strikers,
 
 def eval_maac_with_random(model_path,
                           env,
-                          config,
                           order='team',
                           eval_epsoid=40):
-    model = AttentionSAC.init_from_save(model_path)
+    maac = AttentionSAC.init_from_save(model_path)
     obs_striker, obs_goalie = env.reset(order)
 
     actions_strikers = [None, None]
@@ -340,10 +339,18 @@ def eval_maac_with_random(model_path,
             torch.from_numpy(obs_striker).float()).to(device)
         obs_goalie = Variable(torch.from_numpy(obs_goalie).float()).to(device)
 
-        actions_strikers[0], _ = strikers[0](obs_striker[:8])
-        actions_goalies[0], _ = goalies[0](obs_goalie[:8])
-        actions_strikers[1], _ = strikers[1](obs_striker[8:])
-        actions_goalies[1], _ = goalies[1](obs_goalie[8:])
+        action_maac = maac.step((obs_striker, obs_goalie))
+
+        # print(action_maac)
+
+        actions_strikers[0] = torch.argmax(action_maac[0][:8], dim=-1)
+        actions_goalies[0] = torch.argmax(action_maac[1][:8], dim=-1)
+        # print(actions_strikers[0])
+
+        actions_strikers[1] = torch.randint(7, size=(8, ))
+        actions_goalies[1] = torch.randint(5, size=(8, ))
+
+        # print(actions_strikers)
 
         actions_striker = torch.cat(actions_strikers, 0)
         actions_goalie = torch.cat(actions_goalies, 0)
@@ -378,6 +385,8 @@ if __name__ == '__main__':
 
     ppo_striker = './ppo/ckpt/PPO_strikerSoccerTwos_9920.pth'
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
+
+    maac_path = './maac/server/model.pt'
 
     with torch.no_grad():
         policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
@@ -427,8 +436,8 @@ if __name__ == '__main__':
 
         # eval_self_complete(policy_striker, policy_goalie, env, device, 'team')
 
-        eval_self_complete(policy_striker_large, policy_striker_large, env,
-                           device, 'team')
+        # eval_self_complete(policy_striker_large, policy_striker_large, env,
+        #                    device, 'team')
         # eval_self_complete(policy_striker_large2, policy_striker_large2, env,
         #                    device, 'team')
 
@@ -452,4 +461,5 @@ if __name__ == '__main__':
         #                     device,
         #                     order='team',
         #                     eval_epsoid=100)
+        eval_maac_with_random(maac_path, env)
     pass
