@@ -100,7 +100,7 @@ def run(config):
 
             obs = np.array(obs)
             torch_obs = [
-                torch.FloatTensor(obs[i], device=device)
+                torch.FloatTensor(obs[i]).to(device)
                 for i in range(model.nagents)
             ]
 
