@@ -71,48 +71,6 @@ def onehot_from_logits(logits, eps=0.0, dim=1):
         for i, r in enumerate(torch.rand(logits.shape[0]))
     ])
 
-
-# modified for PyTorch from https://github.com/ericjang/gumbel-softmax/blob/master/Categorical%20VAE.ipynb
-def sample_gumbel(shape, eps=1e-20, tens_type=torch.FloatTensor):
-    """Sample from Gumbel(0, 1)"""
-    U = Variable(tens_type(*shape).uniform_(), requires_grad=False)
-    return -torch.log(-torch.log(U + eps) + eps)
-
-
-# modified for PyTorch from https://github.com/ericjang/gumbel-softmax/blob/master/Categorical%20VAE.ipynb
-def gumbel_softmax_sample(logits, temperature, dim=1):
-    """ Draw a sample from the Gumbel-Softmax distribution"""
-    y = logits + sample_gumbel(logits.shape, tens_type=type(logits.data))
-    return F.softmax(y / temperature, dim=dim)
-
-
-# modified for PyTorch from https://github.com/ericjang/gumbel-softmax/blob/master/Categorical%20VAE.ipynb
-def gumbel_softmax(logits, temperature=1.0, hard=False, dim=1):
-    """Sample from the Gumbel-Softmax distribution and optionally discretize.
-    Args:
-      logits: [batch_size, n_class] unnormalized log-probs
-      temperature: non-negative scalar
-      hard: if True, take argmax, but differentiate w.r.t. soft sample y
-    Returns:
-      [batch_size, n_class] sample from the Gumbel-Softmax distribution.
-      If hard=True, then the returned sample will be one-hot, otherwise it will
-      be a probabilitiy distribution that sums to 1 across classes
-    """
-    y = gumbel_softmax_sample(logits, temperature, dim=dim)
-    if hard:
-        y_hard = onehot_from_logits(y, dim=dim)
-        y = (y_hard - y).detach() + y
-    return y
-
-
-def firmmax_sample(logits, temperature, dim=1):
-    if temperature == 0:
-        return F.softmax(logits, dim=dim)
-    y = logits + sample_gumbel(logits.shape, tens_type=type(
-        logits.data)) / temperature
-    return F.softmax(y, dim=dim)
-
-
 def categorical_sample(probs, use_cuda=False):
     int_acs = torch.multinomial(probs, 1)
     if use_cuda:

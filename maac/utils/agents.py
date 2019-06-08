@@ -1,7 +1,7 @@
 from torch import Tensor
 from torch.autograd import Variable
 from torch.optim import Adam
-from maac.utils.misc import hard_update, gumbel_softmax, onehot_from_logits
+from maac.utils.misc import hard_update, onehot_from_logits
 from maac.utils.policies import DiscretePolicy
 
 

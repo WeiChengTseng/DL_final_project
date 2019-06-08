@@ -27,7 +27,7 @@ class ReplayBuffer(object):
         self.num_agents = num_agents * 2 if self_play else num_agents
         obs_dims = obs_dims * 2 if self_play else obs_dims
         ac_dims = ac_dims * 2 if self_play else ac_dims
-        
+
         # self.num_agents = num_agents
         self.obs_buffs = []
         self.ac_buffs = []
@@ -52,13 +52,8 @@ class ReplayBuffer(object):
     def push(self, observations, actions, rewards, next_observations, dones):
         # handle multiple parallel environments
         nentries = observations.shape[1]
-        # print(nentries)
-
-        # print(observations)
         observations, actions, rewards, next_observations, dones = self.pack_self_play(
             observations, actions, rewards, next_observations, dones)
-
-        # print(observations)
 
         if self.curr_i + nentries > self.max_steps:
             rollover = self.max_steps - self.curr_i  # num of indices to roll over
@@ -109,7 +104,7 @@ class ReplayBuffer(object):
             self.filled_i += nentries
         if self.curr_i == self.max_steps:
             self.curr_i = 0
-        
+
         return
 
     def sample(self, N, to_gpu=False, norm_rews=True):
@@ -122,15 +117,13 @@ class ReplayBuffer(object):
             ret_rews = [
                 cast((self.rew_buffs[i][inds] -
                       self.rew_buffs[i][:self.filled_i].mean()) /
-                     self.rew_buffs[i][:self.filled_i].std())
+                     (self.rew_buffs[i][:self.filled_i].std() + 1e-7))
                 for i in range(self.num_agents)
             ]
         else:
             ret_rews = [
                 cast(self.rew_buffs[i][inds]) for i in range(self.num_agents)
             ]
-
-        # print(self.obs_buffs[0][0])
 
         obs_buffs = [
             cast(self.obs_buffs[i][inds]) for i in range(self.num_agents)
@@ -145,8 +138,6 @@ class ReplayBuffer(object):
             cast(self.done_buffs[i][inds]) for i in range(self.num_agents)
         ]
 
-        # print(self.num_agents)
-        # print(ac_buffs)
         return (obs_buffs, ac_buffs, ret_rews, next_obs_buffs, done_buffs)
 
     def pack_self_play(self, observations, actions, rewards, next_observations,
@@ -155,15 +146,15 @@ class ReplayBuffer(object):
         obs_packed = np.zeros((self.num_agents, 16, 112))
         nex_obs_packed = np.zeros((self.num_agents, 16, 112))
 
-        # print(observations)
-
         ac_packed = actions + [actions[0][swap], actions[1][swap]]
         rew_packed = rewards + [rewards[0][swap], rewards[1][swap]]
         done_packed = dones + [dones[0][swap], dones[1][swap]]
         obs_packed[:2], obs_packed[2:] = observations, observations[:, swap, :]
         nex_obs_packed[:2] = next_observations
-        nex_obs_packed[2:] = [next_observations[0][swap], next_observations[1][swap]]
-        # exit()
+        nex_obs_packed[2:] = [
+            next_observations[0][swap], next_observations[1][swap]
+        ]
+
         return obs_packed, ac_packed, rew_packed, nex_obs_packed, done_packed
 
     def get_average_rewards(self, N):

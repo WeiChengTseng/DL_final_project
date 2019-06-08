@@ -208,6 +208,7 @@ class AttentionSAC(object):
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 curr_agent.policy.parameters(), 0.5)
+
             curr_agent.policy_optimizer.step()
             curr_agent.policy_optimizer.zero_grad()
 
