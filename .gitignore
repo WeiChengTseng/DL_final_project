@@ -131,3 +131,4 @@ ckpt/
 *.pth
 *.pt
 .DS_Store
+models/
