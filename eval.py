@@ -16,6 +16,8 @@ from a2c.train_multi import train
 
 from ppo.PPO import PPO
 
+from maac.attention_sac import AttentionSAC
+
 from env_exp import SocTwoEnv
 
 
@@ -202,12 +204,12 @@ def eval_agents_compete(strikers,
 
         for i in np.argwhere(dones[0][:8]).flatten():
             epsoid += 1
-            if rewards[1][i+8]<0:
-                records[0]+=1
-            elif rewards[0][i]<0:
-                records[1]+=1
+            if rewards[1][i + 8] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
             else:
-                records[2]+=1
+                records[2] += 1
 
     print(records)
     return
@@ -249,7 +251,8 @@ def eval_compete_acppo(strikers,
         actions_goalie = probs_goalie.multinomial(1).data
 
         # print(actions_striker)
-        actions_striker = torch.cat((actions_striker, action_ppo_striker), dim=0)
+        actions_striker = torch.cat((actions_striker, action_ppo_striker),
+                                    dim=0)
         actions_goalie = torch.cat((actions_goalie, action_ppo_goalie), dim=0)
         # random_act_striker = torch.LongTensor(np.random.randint(7, size=(8,1)))
         # random_act_goalie = torch.LongTensor(np.random.randint(5, size=(8,1)))
@@ -267,22 +270,23 @@ def eval_compete_acppo(strikers,
 
         for i in np.argwhere(dones[0][:8]).flatten():
             epsoid += 1
-            if rewards[1][i+8]<0:
-                records[0]+=1
-            elif rewards[1][i]<0:
-                records[1]+=1
+            if rewards[1][i + 8] < 0:
+                records[0] += 1
+            elif rewards[1][i] < 0:
+                records[1] += 1
             else:
-                records[2]+=1
+                records[2] += 1
 
     print(records)
     return
 
+
 def eval_agents_compete_(strikers,
-                        goalies,
-                        env,
-                        device,
-                        order='team',
-                        eval_epsoid=40):
+                         goalies,
+                         env,
+                         device,
+                         order='team',
+                         eval_epsoid=40):
     obs_striker, obs_goalie = env.reset(order)
     actions_strikers = [None, None]
     actions_goalies = [None, None]
@@ -308,13 +312,55 @@ def eval_agents_compete_(strikers,
 
         for i in np.argwhere(dones[0]).flatten():
             epsoid += 1
-            if rewards[1][i]<0:
-                records[0]+=1
-            elif rewards[0][i]<0:
-                records[1]+=1
+            if rewards[1][i] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
             else:
-                records[2]+=1
-    
+                records[2] += 1
+
+    return
+
+
+def eval_maac_with_random(model_path,
+                          env,
+                          config,
+                          order='team',
+                          eval_epsoid=40):
+    model = AttentionSAC.init_from_save(model_path)
+    obs_striker, obs_goalie = env.reset(order)
+
+    actions_strikers = [None, None]
+    actions_goalies = [None, None]
+    records = [0, 0, 0]
+
+    epsoid = 0
+    while epsoid < eval_epsoid:
+        obs_striker = Variable(
+            torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = Variable(torch.from_numpy(obs_goalie).float()).to(device)
+
+        actions_strikers[0], _ = strikers[0](obs_striker[:8])
+        actions_goalies[0], _ = goalies[0](obs_goalie[:8])
+        actions_strikers[1], _ = strikers[1](obs_striker[8:])
+        actions_goalies[1], _ = goalies[1](obs_goalie[8:])
+
+        actions_striker = torch.cat(actions_strikers, 0)
+        actions_goalie = torch.cat(actions_goalies, 0)
+
+        obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
+                                          order)
+        obs_striker, obs_goalie = obs
+
+        for i in np.argwhere(dones[0]).flatten():
+            epsoid += 1
+            if rewards[1][i] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
+            else:
+                records[2] += 1
+
     return
 
 

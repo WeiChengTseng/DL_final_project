@@ -143,7 +143,7 @@ class AttentionSAC(object):
         q_loss.backward()
         self.critic.scale_shared_grads()
         grad_norm = torch.nn.utils.clip_grad_norm_(self.critic.parameters(),
-                                                  10 * self.nagents)
+                                                   10 * self.nagents)
         self.critic_optimizer.step()
         self.critic_optimizer.zero_grad()
 
@@ -154,7 +154,12 @@ class AttentionSAC(object):
 
         return
 
-    def update_policies(self, sample, soft=True, logger=None, self_play=True, **kwargs):
+    def update_policies(self,
+                        sample,
+                        soft=True,
+                        logger=None,
+                        self_play=True,
+                        **kwargs):
         obs, acs, rews, next_obs, dones = sample
         samp_acs = []
         all_probs = []

@@ -102,24 +102,19 @@ def run(config):
                 torch.FloatTensor(obs[i]) for i in range(model.nagents)
             ]
 
-            # print(torch_obs[0].shape)
 
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
             # shape [(16, 7), (16, 5)]
 
-            # print(torch_agent_actions)
             # convert actions to numpy arrays
             agent_actions = [ac.data.numpy() for ac in torch_agent_actions]
 
-            # print(len(agent_actions))
             # rearrange actions to be per environment
             actions = [[ac[i] for ac in agent_actions]
                        for i in range(config.n_rollout_threads)]
-            # print(actions)
 
             actions = [np.argmax(action, axis=-1) for action in agent_actions]
-            # print(actions)
             next_obs, rewards, dones, infos = env.step(actions[0], actions[1])
             replay_buffer.push(obs, agent_actions, rewards, next_obs, dones)
             obs = next_obs
