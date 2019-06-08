@@ -89,6 +89,7 @@ def run(config):
             (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
         obs = env.reset('team')
         model.prep_rollouts(device=device)
+        model.prep_training(device=device)
 
         for et_i in range(config.episode_length):
             # rearrange observations to be per agent, and convert to torch Variable
@@ -125,7 +126,7 @@ def run(config):
                 #     model.prep_training(device='gpu')
                 # else:
                 #     model.prep_training(device='cpu')
-                model.prep_training(device=device)
+                
 
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
