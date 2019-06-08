@@ -109,7 +109,7 @@ def run(config):
             # shape [(16, 7), (16, 5)]
 
             # convert actions to numpy arrays
-            agent_actions = [ac.data.numpy() for ac in torch_agent_actions]
+            agent_actions = [ac.data.cpu().numpy() for ac in torch_agent_actions]
 
             # rearrange actions to be per environment
             actions = [[ac[i] for ac in agent_actions]
