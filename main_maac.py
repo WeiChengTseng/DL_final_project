@@ -99,9 +99,9 @@ def run(config):
 
             obs = np.array(obs)
             torch_obs = [
-                torch.FloatTensor(obs[i]) for i in range(model.nagents)
+                torch.FloatTensor(obs[i], device=device)
+                for i in range(model.nagents)
             ]
-
 
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                         type=int,
                         help='the number of environment in training process')
     parser.add_argument("--buffer_length", default=int(1e6), type=int)
-    parser.add_argument("--n_episodes", default=50000, type=int)
+    parser.add_argument("--n_episodes", default=5e6, type=int)
     parser.add_argument("--episode_length", default=25, type=int)
     parser.add_argument("--steps_per_update", default=100, type=int)
     parser.add_argument("--num_updates",

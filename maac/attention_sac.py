@@ -88,7 +88,7 @@ class AttentionSAC(object):
             a.target_policy for a in self.agents
         ]
 
-    def step(self, observations, explore=False):
+    def step(self, observations, explore=False, device='cpu'):
         """
         Take a step forward in environment with all agents
         Inputs:
