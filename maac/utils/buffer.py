@@ -43,7 +43,8 @@ class ReplayBuffer(object):
                 np.zeros((max_steps, odim), dtype=np.float32))
             self.done_buffs.append(np.zeros(max_steps, dtype=np.uint8))
 
-        self.filled_i = 0  # index of first empty location in buffer (last index when full)
+        # index of first empty location in buffer (last index when full)
+        self.filled_i = 0  
         self.curr_i = 0  # current index to write to (ovewrite oldest data)
 
     def __len__(self):
@@ -56,7 +57,8 @@ class ReplayBuffer(object):
             observations, actions, rewards, next_observations, dones)
 
         if self.curr_i + nentries > self.max_steps:
-            rollover = self.max_steps - self.curr_i  # num of indices to roll over
+            # num of indices to roll over
+            rollover = self.max_steps - self.curr_i  
             for agent_i in range(self.num_agents):
                 self.obs_buffs[agent_i] = np.roll(self.obs_buffs[agent_i],
                                                   rollover,

@@ -32,7 +32,7 @@ OBS_DIM = 112
 
 
 def run(config):
-    model_dir = Path('./models') / config.env_id / config.model_name
+    model_dir = Path('./maac/models') / config.model_name
     if not model_dir.exists():
         run_num = 1
     else:
@@ -50,6 +50,7 @@ def run(config):
     log_dir = run_dir / 'logs'
     os.makedirs(log_dir)
     logger = SummaryWriter(str(log_dir))
+    device = 'cuda' if config.use_gpu and torch.cuda.is_available() else 'cpu'
 
     torch.manual_seed(run_num)
     np.random.seed(run_num)
@@ -87,7 +88,7 @@ def run(config):
             "Episodes %i-%i of %i" %
             (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
         obs = env.reset('team')
-        model.prep_rollouts(device='cpu')
+        model.prep_rollouts(device=device)
 
         for et_i in range(config.episode_length):
             # rearrange observations to be per agent, and convert to torch Variable
@@ -125,10 +126,11 @@ def run(config):
             t += config.n_rollout_threads
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
-                if config.use_gpu:
-                    model.prep_training(device='gpu')
-                else:
-                    model.prep_training(device='cpu')
+                # if config.use_gpu:
+                #     model.prep_training(device='gpu')
+                # else:
+                #     model.prep_training(device='cpu')
+                model.prep_training(device=device)
 
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
@@ -136,7 +138,7 @@ def run(config):
                     model.update_critic(sample, logger=logger)
                     model.update_policies(sample, logger=logger)
                     model.update_all_targets()
-                model.prep_rollouts(device='cpu')
+                model.prep_rollouts(device=device)
         ep_rews = replay_buffer.get_average_rewards(config.episode_length *
                                                     config.n_rollout_threads)
         for a_i, a_ep_rew in enumerate(ep_rews):
@@ -144,7 +146,7 @@ def run(config):
                               ep_i)
 
         if ep_i % config.save_interval < config.n_rollout_threads:
-            model.prep_rollouts(device='cpu')
+            model.prep_rollouts(device=device)
             os.makedirs(run_dir / 'incremental', exist_ok=True)
             model.save(run_dir / 'incremental' / ('model_ep%i.pt' %
                                                   (ep_i + 1)))
@@ -158,13 +160,13 @@ def run(config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env_id",
-                        help="Name of environment",
-                        default='test_id')
+    # parser.add_argument("--env_id",
+    #                     help="Name of environment",
+    #                     default='test_id')
     parser.add_argument("--model_name",
                         help="Name of directory to store " +
                         "model/training contents",
-                        default='test')
+                        default='maac')
     parser.add_argument('--env_path',
                         type=str,
                         default='./env/macos/SoccerTwosBeta.app',

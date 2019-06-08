@@ -124,12 +124,6 @@ class AttentionSAC(object):
         trgt_critic_in = list(zip(next_obs, next_acs))
         critic_in = list(zip(obs, acs))
 
-        # print(self.target_policies)
-        # print(next_obs)
-        # print(len(obs))
-        # print(len(acs))
-        # print(critic_in[0])
-
         next_qs = self.target_critic(trgt_critic_in)
         critic_rets = self.critic(critic_in,
                                   regularize=True,
@@ -236,37 +230,37 @@ class AttentionSAC(object):
         for a in self.agents:
             a.policy.train()
             a.target_policy.train()
-        if device == 'gpu':
-            fn = lambda x: x.cuda()
-        else:
-            fn = lambda x: x.cpu()
+        # if device == 'gpu':
+        #     fn = lambda x: x.cuda()
+        # else:
+        #     fn = lambda x: x.cpu()
         if not self.pol_dev == device:
             for a in self.agents:
-                a.policy = fn(a.policy)
+                a.policy = (a.policy).to(device)
             self.pol_dev = device
         if not self.critic_dev == device:
-            self.critic = fn(self.critic)
+            self.critic = (self.critic).to(device)
             self.critic_dev = device
         if not self.trgt_pol_dev == device:
             for a in self.agents:
-                a.target_policy = fn(a.target_policy)
+                a.target_policy = (a.target_policy).to(device)
             self.trgt_pol_dev = device
         if not self.trgt_critic_dev == device:
-            self.target_critic = fn(self.target_critic)
+            self.target_critic = (self.target_critic).to(device)
             self.trgt_critic_dev = device
         return
 
     def prep_rollouts(self, device='cpu'):
         for a in self.agents:
             a.policy.eval()
-        if device == 'gpu':
-            fn = lambda x: x.cuda()
-        else:
-            fn = lambda x: x.cpu()
+        # if device == 'gpu':
+        #     fn = lambda x: x.cuda()
+        # else:
+        #     fn = lambda x: x.cpu()
         # only need main policy for rollouts
         if not self.pol_dev == device:
             for a in self.agents:
-                a.policy = fn(a.policy)
+                a.policy = (a.policy).to(device)
             self.pol_dev = device
 
         return

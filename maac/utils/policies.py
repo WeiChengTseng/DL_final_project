@@ -15,7 +15,6 @@ class BasePolicy(nn.Module):
                  out_dim,
                  hidden_dim=64,
                  nonlin=F.leaky_relu,
-                #  nonlin=F.relu,
                 #  norm_in=True,
                  norm_in=False,
                  onehot_dim=0):
@@ -80,18 +79,9 @@ class DiscretePolicy(BasePolicy):
         probs = F.softmax(out, dim=1)
         on_gpu = next(self.parameters()).is_cuda
 
-
-        # print('-'*80+'\n',obs)
-        # print(obs.shape)
         # get the actions with the policy
         if sample:
             int_act, act = categorical_sample(probs, use_cuda=on_gpu)
-            # try:
-            #     int_act, act = categorical_sample(probs, use_cuda=on_gpu)
-            # except:
-            #     # print(obs)
-            #     # print(out)
-            #     pdb.set_trace()
         else:
             act = onehot_from_logits(probs)
         rets = [act]
