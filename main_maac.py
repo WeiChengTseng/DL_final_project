@@ -15,21 +15,6 @@ from env_exp import SocTwoEnv
 
 OBS_DIM = 112
 
-# def make_parallel_env(env_id, n_rollout_threads, seed):
-#     def get_env_fn(rank):
-#         def init_env():
-#             env = make_env(env_id, discrete_action=True)
-#             env.seed(seed + rank * 1000)
-#             np.random.seed(seed + rank * 1000)
-#             return env
-
-#         return init_env
-
-#     if n_rollout_threads == 1:
-#         return DummyVecEnv([get_env_fn(0)])
-#     else:
-#         return ([get_env_fn(i) for i in range(n_rollout_threads)])
-
 
 def run(config):
     model_dir = Path('./maac/models') / config.model_name
@@ -108,35 +93,39 @@ def run(config):
             torch_agent_actions = model.step(torch_obs, explore=True)
             # shape [(16, 7), (16, 5)]
 
+            # print(torch_agent_actions)
             # convert actions to numpy arrays
-            agent_actions = [ac.data.cpu().numpy() for ac in torch_agent_actions]
+            agent_actions = [
+                ac.data.cpu().numpy() for ac in torch_agent_actions
+            ]
+            # print(agent_actions)
 
             # rearrange actions to be per environment
             actions = [[ac[i] for ac in agent_actions]
                        for i in range(config.n_rollout_threads)]
+            # print(actions)
 
             actions = [np.argmax(action, axis=-1) for action in agent_actions]
+            # print(actions)
             next_obs, rewards, dones, infos = env.step(actions[0], actions[1])
             replay_buffer.push(obs, agent_actions, rewards, next_obs, dones)
             obs = next_obs
             t += config.n_rollout_threads
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
-                # if config.use_gpu:
-                #     model.prep_training(device='gpu')
-                # else:
-                #     model.prep_training(device='cpu')
-                
 
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
+                                                  norm_rews=True,
                                                   to_gpu=config.use_gpu)
                     model.update_critic(sample, logger=logger)
                     model.update_policies(sample, logger=logger)
                     model.update_all_targets()
                 model.prep_rollouts(device=device)
+
         ep_rews = replay_buffer.get_average_rewards(config.episode_length *
                                                     config.n_rollout_threads)
+
         for a_i, a_ep_rew in enumerate(ep_rews):
             logger.add_scalar('agent%i/mean_episode_rewards' % a_i, a_ep_rew,
                               ep_i)
