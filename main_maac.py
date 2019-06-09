@@ -46,6 +46,7 @@ def run(config):
                     worker_id=0,
                     train_mode=True,
                     render=config.render)
+    obs = env.reset('team')
 
     # create the model
     model = AttentionSAC.init_from_env(
@@ -67,14 +68,16 @@ def run(config):
     replay_buffer = ReplayBuffer(config.buffer_length, model.nagents,
                                  [OBS_DIM, OBS_DIM], [7, 5])
 
-    t = 0
-    for ep_i in range(0, config.n_episodes, config.n_rollout_threads):
-        print(
-            "Episodes %i-%i of %i" %
-            (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
-        obs = env.reset('team')
+    t, ep_i = 0, 0
+    # for ep_i in range(0, config.n_episodes, config.n_rollout_threads):
+    while ep_i < config.n_episodes:
+        # print(
+        #     "Episodes %i-%i of %i" %
+        #     (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
+        if ep_i % 1000 == 0:
+            print('Episode:', ep_i)
+        # obs = env.reset('team')
         model.prep_rollouts(device=device)
-        model.prep_training(device=device)
 
         for et_i in range(config.episode_length):
             # rearrange observations to be per agent, and convert to torch Variable
@@ -93,27 +96,24 @@ def run(config):
             torch_agent_actions = model.step(torch_obs, explore=True)
             # shape [(16, 7), (16, 5)]
 
-            # print(torch_agent_actions)
             # convert actions to numpy arrays
             agent_actions = [
                 ac.data.cpu().numpy() for ac in torch_agent_actions
             ]
-            # print(agent_actions)
 
             # rearrange actions to be per environment
             actions = [[ac[i] for ac in agent_actions]
                        for i in range(config.n_rollout_threads)]
-            # print(actions)
 
             actions = [np.argmax(action, axis=-1) for action in agent_actions]
-            # print(actions)
+
             next_obs, rewards, dones, infos = env.step(actions[0], actions[1])
             replay_buffer.push(obs, agent_actions, rewards, next_obs, dones)
             obs = next_obs
             t += config.n_rollout_threads
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
-
+                model.prep_training(device=device)
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
                                                   norm_rews=False,
@@ -123,12 +123,16 @@ def run(config):
                     model.update_all_targets()
                 model.prep_rollouts(device=device)
 
-        ep_rews = replay_buffer.get_average_rewards(config.episode_length *
-                                                    config.n_rollout_threads)
+            for i in np.argwhere(dones):
+                ep_i += 1
+                pass
 
-        for a_i, a_ep_rew in enumerate(ep_rews):
-            logger.add_scalar('agent%i/mean_episode_rewards' % a_i, a_ep_rew,
-                              ep_i)
+        # ep_rews = replay_buffer.get_average_rewards(config.episode_length *
+        #                                             config.n_rollout_threads)
+
+        # for a_i, a_ep_rew in enumerate(ep_rews):
+        #     logger.add_scalar('agent%i/mean_episode_rewards' % a_i, a_ep_rew,
+        #                       ep_i)
 
         if ep_i % config.save_interval < config.n_rollout_threads:
             model.prep_rollouts(device=device)
@@ -145,9 +149,7 @@ def run(config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--env_id",
-    #                     help="Name of environment",
-    #                     default='test_id')
+
     parser.add_argument("--model_name",
                         help="Name of directory to store " +
                         "model/training contents",

@@ -123,7 +123,6 @@ class AttentionCritic(nn.Module):
 
 
         states = [s for s, a in inps]
-        # print((states))
         actions = [a for s, a in inps]
         inps = [torch.cat((s, a), dim=1) for s, a in inps]
 
@@ -177,8 +176,6 @@ class AttentionCritic(nn.Module):
 
         # calculate Q per agent
         all_rets = []
-
-        # print(len(all_attend_probs))
 
         for i, a_i in enumerate(agents):
             head_entropies = [
