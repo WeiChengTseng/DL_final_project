@@ -269,7 +269,7 @@ class AttentionSAC(object):
         Save trained parameters of all agents into one file
         """
         self.prep_training(
-            device='cpu')  # move parameters to CPU before saving
+            device=self.pol_dev)  # move parameters to CPU before saving
         save_dict = {
             'init_dict': self.init_dict,
             'agent_params': [a.get_params() for a in self.agents],
