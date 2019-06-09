@@ -236,6 +236,7 @@ class AttentionSAC(object):
             a.target_policy.train()
 
         if not self.pol_dev == device:
+            print('prep_training: change device')
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
@@ -256,6 +257,7 @@ class AttentionSAC(object):
             a.policy.eval()
         # only need main policy for rollouts
         if not self.pol_dev == device:
+            print('prep_rollouts: change device')
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
