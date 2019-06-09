@@ -228,7 +228,7 @@ class AttentionSAC(object):
 
         return
 
-    def prep_training(self, device='gpu'):
+    def prep_training(self, device='cuda'):
         self.critic.train()
         self.target_critic.train()
         for a in self.agents:
