@@ -45,7 +45,7 @@ class BasePolicy(nn.Module):
         Outputs:
             out (PyTorch Matrix): Actions
         """
-        print(X.device)
+        # print(X.device)
         onehot = None
         # if type(X) is tuple:
         if isinstance(X, tuple):

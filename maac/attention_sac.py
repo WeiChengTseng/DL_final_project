@@ -236,7 +236,7 @@ class AttentionSAC(object):
             a.target_policy.train()
 
         if not self.pol_dev == device:
-            print('prep_training: change device')
+            print('prep_training: change device from {} to {}'.format(self.pol_dev, device))
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
@@ -252,12 +252,12 @@ class AttentionSAC(object):
             self.trgt_critic_dev = device
         return
 
-    def prep_rollouts(self, device='cpu'):
+    def prep_rollouts(self, device='cuda'):
         for a in self.agents:
             a.policy.eval()
         # only need main policy for rollouts
         if not self.pol_dev == device:
-            print('prep_rollouts: change device')
+            print('prep_rollouts: change device from {} to {}'.format(self.pol_dev, device))
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
