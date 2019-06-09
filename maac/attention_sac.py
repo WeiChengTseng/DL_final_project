@@ -25,7 +25,7 @@ class AttentionSAC(object):
                  pol_hidden_dim=128,
                  critic_hidden_dim=128,
                  attend_heads=4,
-                 device='cpu'
+                 device='cpu',
                  **kwargs):
         """
         Inputs:
