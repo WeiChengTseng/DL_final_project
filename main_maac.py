@@ -37,6 +37,8 @@ def run(config):
     logger = SummaryWriter(str(log_dir))
     device = 'cuda' if config.use_gpu and torch.cuda.is_available() else 'cpu'
 
+    print('The training process use', device)
+
     torch.manual_seed(run_num)
     np.random.seed(run_num)
 

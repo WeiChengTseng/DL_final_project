@@ -478,7 +478,7 @@ if __name__ == '__main__':
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
 
     maac_path = './maac/server/model.pt'
-    maac_path = './maac/models/maac/run13/model.pt'
+    maac_path = './maac/models/maac/run14/model.pt'
 
     with torch.no_grad():
         # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
