@@ -322,10 +322,7 @@ def eval_agents_compete_(strikers,
     return
 
 
-def eval_maac_with_random(model_path,
-                          env,
-                          order='team',
-                          eval_epsoid=40):
+def eval_maac_with_random(model_path, env, order='team', eval_epsoid=40):
     maac = AttentionSAC.init_from_save(model_path)
     obs_striker, obs_goalie = env.reset(order)
 
@@ -371,6 +368,100 @@ def eval_maac_with_random(model_path,
     return
 
 
+def eval_maac_self_compete(model_path, env, order='team', eval_epsoid=40):
+    maac = AttentionSAC.init_from_save(model_path)
+    obs_striker, obs_goalie = env.reset(order)
+
+    actions_strikers = [None, None]
+    actions_goalies = [None, None]
+    records = [0, 0, 0]
+
+    epsoid = 0
+    while epsoid < eval_epsoid:
+        obs_striker = Variable(
+            torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = Variable(torch.from_numpy(obs_goalie).float()).to(device)
+
+        action_maac = maac.step((obs_striker, obs_goalie))
+
+        # print(action_maac)
+
+        actions_strikers[0] = torch.argmax(action_maac[0], dim=-1)
+        actions_goalies[0] = torch.argmax(action_maac[1], dim=-1)
+        # print(actions_strikers[0])
+
+        # print(actions_strikers)
+
+        # actions_striker = torch.cat(actions_strikers, 0)
+        # actions_goalie = torch.cat(actions_goalies, 0)
+
+        obs, rewards, dones, _ = env.step(actions_strikers[0],
+                                          actions_goalies[0], order)
+        obs_striker, obs_goalie = obs
+
+        for i in np.argwhere(dones[0]).flatten():
+            epsoid += 1
+            if rewards[1][i] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
+            else:
+                records[2] += 1
+
+    return
+
+
+def eval_maacac_compete(model_path,
+                        strikers,
+                        goalies,
+                        env,
+                        order='team',
+                        eval_epsoid=40):
+    maac = AttentionSAC.init_from_save(model_path)
+    obs_striker, obs_goalie = env.reset(order)
+
+    actions_strikers = [None, None]
+    actions_goalies = [None, None]
+    records = [0, 0, 0]
+
+    epsoid = 0
+    while epsoid < eval_epsoid:
+        obs_striker = Variable(
+            torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = Variable(torch.from_numpy(obs_goalie).float()).to(device)
+
+        action_maac = maac.step((obs_striker, obs_goalie))
+
+        # print(action_maac)
+
+        actions_strikers[0] = torch.argmax(action_maac[0][:8], dim=-1)
+        actions_goalies[0] = torch.argmax(action_maac[1][:8], dim=-1)
+        # print(actions_strikers[0])
+
+        actions_strikers[1], _ = strikers(obs_striker[8:])
+        actions_goalies[1], _ = goalies(obs_goalie[8:])
+
+        # print(actions_strikers)
+
+        actions_striker = torch.cat(actions_strikers, 0)
+        actions_goalie = torch.cat(actions_goalies, 0)
+
+        obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
+                                          order)
+        obs_striker, obs_goalie = obs
+
+        for i in np.argwhere(dones[0]).flatten():
+            epsoid += 1
+            if rewards[1][i] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
+            else:
+                records[2] += 1
+
+    return
+
+
 if __name__ == '__main__':
     env_path = './env/macos/SoccerTwosBeta.app'
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
@@ -389,23 +480,23 @@ if __name__ == '__main__':
     maac_path = './maac/server/model.pt'
 
     with torch.no_grad():
-        policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
+        # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
         policy_striker_large, policy_goalie_large, = A2CLarge(7).to(
             device), A2CLarge(5).to(device)
-        policy_striker_large2, policy_goalie_large2, = A2CLarge(7).to(
-            device), A2CLarge(5).to(device)
+        # policy_striker_large2, policy_goalie_large2, = A2CLarge(7).to(
+        #     device), A2CLarge(5).to(device)
 
         ckpt_large = torch.load(net_path_large, map_location=device)
         policy_striker_large.load_state_dict(ckpt_large['striker_a2c'])
         policy_goalie_large.load_state_dict(ckpt_large['goalie_a2c'])
 
-        ckpt_large2 = torch.load(net_path_large2, map_location=device)
-        policy_striker_large2.load_state_dict(ckpt_large2['striker_a2c'])
-        policy_goalie_large2.load_state_dict(ckpt_large2['goalie_a2c'])
+        # ckpt_large2 = torch.load(net_path_large2, map_location=device)
+        # policy_striker_large2.load_state_dict(ckpt_large2['striker_a2c'])
+        # policy_goalie_large2.load_state_dict(ckpt_large2['goalie_a2c'])
 
-        ckpt = torch.load(net_path, map_location=device)
-        policy_striker.load_state_dict(ckpt['striker_a2c'])
-        policy_goalie.load_state_dict(ckpt['goalie_a2c'])
+        # ckpt = torch.load(net_path, map_location=device)
+        # policy_striker.load_state_dict(ckpt['striker_a2c'])
+        # policy_goalie.load_state_dict(ckpt['goalie_a2c'])
 
         ppo_striker = PPO(112, 7, 64, ckpt_path=ppo_striker)
         ppo_goalie = PPO(112, 5, 64, ckpt_path=ppo_goalie)
@@ -413,8 +504,8 @@ if __name__ == '__main__':
         policy_striker_large.eval()
         policy_goalie_large.eval()
 
-        policy_striker.eval()
-        policy_goalie.eval()
+        # policy_striker.eval()
+        # policy_goalie.eval()
 
         # eval_with_random_agent(policy_striker,
         #                        policy_goalie,
@@ -461,5 +552,6 @@ if __name__ == '__main__':
         #                     device,
         #                     order='team',
         #                     eval_epsoid=100)
-        eval_maac_with_random(maac_path, env)
+        # eval_maac_with_random(maac_path, env)
+        eval_maac_self_compete(maac_path, env)
     pass
