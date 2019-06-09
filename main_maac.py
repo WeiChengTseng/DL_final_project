@@ -43,7 +43,7 @@ def run(config):
     np.random.seed(run_num)
 
     # define the environment we need to train
-    # env = make_parallel_env(config.env_id, config.n_rollout_threads, run_num)
+
     env = SocTwoEnv(config.env_path,
                     worker_id=0,
                     train_mode=True,
@@ -60,13 +60,9 @@ def run(config):
         pol_hidden_dim=config.pol_hidden_dim,
         critic_hidden_dim=config.critic_hidden_dim,
         attend_heads=config.attend_heads,
-        reward_scale=config.reward_scale)
-    # replay_buffer = ReplayBuffer(
-    #     config.buffer_length, model.nagents,
-    #     [obsp.shape[0] for obsp in env.observation_space], [
-    #         acsp.shape[0] if isinstance(acsp, Box) else acsp.n
-    #         for acsp in env.action_space
-    #     ])
+        reward_scale=config.reward_scale,
+        device=device)
+
     replay_buffer = ReplayBuffer(config.buffer_length, model.nagents,
                                  [OBS_DIM, OBS_DIM], [7, 5])
 
@@ -74,9 +70,7 @@ def run(config):
     model.prep_rollouts(device=device)
     # for ep_i in range(0, config.n_episodes, config.n_rollout_threads):
     while ep_i < config.n_episodes:
-        # print(
-        #     "Episodes %i-%i of %i" %
-        #     (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
+
         if ep_i % 100 == 0:
             print('Episode:', ep_i)
         # obs = env.reset('team')
