@@ -47,6 +47,8 @@ class ReplayBuffer(object):
         self.filled_i = 0  
         self.curr_i = 0  # current index to write to (ovewrite oldest data)
 
+        return
+
     def __len__(self):
         return self.filled_i
 
@@ -76,19 +78,7 @@ class ReplayBuffer(object):
             self.filled_i = self.max_steps
 
         for agent_i in range(self.num_agents):
-            # self.obs_buffs[agent_i][self.curr_i:self.curr_i +
-            #                         nentries] = np.vstack(
-            #                             observations[:, agent_i])
-            # # actions are already batched by agent, so they are indexed differently
-            # self.ac_buffs[agent_i][self.curr_i:self.curr_i +
-            #                        nentries] = actions[agent_i]
-            # self.rew_buffs[agent_i][self.curr_i:self.curr_i +
-            #                         nentries] = rewards[:, agent_i]
-            # self.next_obs_buffs[agent_i][self.curr_i:self.curr_i +
-            #                              nentries] = np.vstack(
-            #                                  next_observations[:, agent_i])
-            # self.done_buffs[agent_i][self.curr_i:self.curr_i +
-            #                          nentries] = dones[:, agent_i]
+
             self.obs_buffs[agent_i][self.curr_i:self.curr_i +
                                     nentries] = observations[agent_i]
             # actions are already batched by agent, so they are indexed differently

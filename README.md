@@ -29,7 +29,9 @@ Model are all saved in ./PPO/
 - MADDPG
 - MAAC
     - developed by Wei-Cheng Tseng
-    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300 --use_gpu
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300 --use_gpu --buffer_length 1e5
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300  --buffer_length 100000 --steps_per_update 1000 --attend_heads 2
 
 ## Reference
 

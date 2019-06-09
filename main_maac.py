@@ -69,15 +69,16 @@ def run(config):
                                  [OBS_DIM, OBS_DIM], [7, 5])
 
     t, ep_i = 0, 0
+    model.prep_rollouts(device=device)
     # for ep_i in range(0, config.n_episodes, config.n_rollout_threads):
     while ep_i < config.n_episodes:
         # print(
         #     "Episodes %i-%i of %i" %
         #     (ep_i + 1, ep_i + 1 + config.n_rollout_threads, config.n_episodes))
-        if ep_i % 1000 == 0:
+        if ep_i % 100 == 0:
             print('Episode:', ep_i)
         # obs = env.reset('team')
-        model.prep_rollouts(device=device)
+        # model.prep_rollouts(device=device)
 
         for et_i in range(config.episode_length):
             # rearrange observations to be per agent, and convert to torch Variable
@@ -107,7 +108,9 @@ def run(config):
 
             actions = [np.argmax(action, axis=-1) for action in agent_actions]
 
-            next_obs, rewards, dones, infos = env.step(actions[0], actions[1])
+            next_obs, rewards, dones, infos = env.step(actions[0],
+                                                       actions[1],
+                                                       order='team')
             replay_buffer.push(obs, agent_actions, rewards, next_obs, dones)
             obs = next_obs
             t += config.n_rollout_threads
