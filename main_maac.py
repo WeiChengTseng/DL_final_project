@@ -167,7 +167,7 @@ if __name__ == '__main__':
                         type=int,
                         help='the number of environment in training process')
     parser.add_argument("--buffer_length", default=int(1e6), type=int)
-    parser.add_argument("--n_episodes", default=int(5e6), type=int)
+    parser.add_argument("--n_episodes", default=int(4e7), type=int)
     parser.add_argument("--episode_length", default=25, type=int)
     parser.add_argument("--steps_per_update", default=100, type=int)
     parser.add_argument("--num_updates",
