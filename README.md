@@ -14,7 +14,11 @@ For Windows, the build binary file is in `./env/windows/soccer_twos`
 ### Baselines
 - PPO
     - developed by Po-Han Chi
+    - python main_ppo.py --folder ./PPO/{your name} --rewards_add True --reward_addtion 0.0002
+    - python main_ppo.py --folder ./PPO/{your name} --rewards_add False
 
+Model are all saved in ./PPO/
+ 
 - A2C
     - developed by Wei-Cheng Tseng
     - python main_a2c.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --reward_shaping True
@@ -23,5 +27,11 @@ For Windows, the build binary file is in `./env/windows/soccer_twos`
 
 ### Multi-Agent Method
 - MADDPG
-- TBD
+- MAAC
+    - developed by Wei-Cheng Tseng
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300 --use_gpu
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300 --use_gpu --buffer_length 1e5
+    - python main_maac.py --env_path ./env/linux/SoccerTwosBirdView.x86_64 --steps_per_update 9600 --episode_length 300 --use_gpu --buffer_length 100000 --steps_per_update 1000 --attend_heads 2
+
+## Reference
 

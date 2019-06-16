@@ -169,9 +169,10 @@ class SocTwoEnv():
 
 if __name__ == "__main__":
 
-    env_path = './env/macos/SoccerTwosLearnerBirdView.app'
+    env_path = './env/macos/SoccerTwosBeta.app'
     soc_env = SocTwoEnv(env_path, worker_id=0, train_mode=False)
-    order = 'team'
+    soc_env
+    order = 'field'
     soc_env.reset(order)  # Don't touch me!
     episode = 0
     for i in range(16):
@@ -186,8 +187,8 @@ if __name__ == "__main__":
             # action_striker = np.random.randint(7, size=16, dtype=int)
             # action_goalie = np.random.randint(5, size=16, dtype=int)
 
-            # action_striker[i] = np.random.randint(7)
-            # action_goalie[i] = np.random.randint(5)
+            action_striker[i] = np.random.randint(7)
+            action_goalie[i] = np.random.randint(5)
 
             action_striker = np.array(action_striker)
             action_goalie = np.array(action_goalie)

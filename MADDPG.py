@@ -6,7 +6,7 @@ from memory import Experience
 from copy import deepcopy
 import os
 from torch.optim import Adam
-import winsound
+# import winsound
 
 
 def soft_update(target, source, t):
@@ -19,7 +19,7 @@ class Maddpg:
     def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.0001,
                 dim_obs = 112, s_dim_act = 7, batchSize_d2 = 1024, episode_before_training = 1024 * 10, GAMMA = 1., scale_reward = 1.):
         if n_striker != n_goalie:
-            winsound.Beep(800,2000)
+            # winsound.Beep(800,2000)
             # os.system('shutdown -s -t 0') 
             raise EnvironmentError("GAN")
         
