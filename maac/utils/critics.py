@@ -28,7 +28,6 @@ class AttentionCritic(nn.Module):
         self.nagents = len(sa_sizes)
         self.attend_heads = attend_heads
 
-        # print(self.sa_sizes)
         # one for each agents
         self.critic_encoders = nn.ModuleList()
         self.critics = nn.ModuleList()

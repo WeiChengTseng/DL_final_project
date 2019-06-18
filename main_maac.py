@@ -113,18 +113,25 @@ def run(config):
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
                 model.prep_training(device=device)
+                print('timestep:', t)
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
                                                   norm_rews=False,
-                                                  to_gpu=config.use_gpu)
+                                                  device=device
+                                                #   to_gpu=config.use_gpu,
+                                                  )
                     model.update_critic(sample, logger=logger)
                     model.update_policies(sample, logger=logger)
                     model.update_all_targets()
                 model.prep_rollouts(device=device)
 
-            for i in np.argwhere(dones):
-                ep_i += 1
-                pass
+
+            done_env = np.argwhere(dones[0])
+            if len(done_env) != 0:
+                # for i in done_env:
+                #     ep_i += 1
+                ep_i += len(done_env)
+                break
 
         if ep_i % config.save_interval < config.n_rollout_threads:
             model.prep_rollouts(device=device)
