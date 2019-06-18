@@ -44,7 +44,7 @@ class ReplayBuffer(object):
             self.done_buffs.append(np.zeros(max_steps, dtype=np.uint8))
 
         # index of first empty location in buffer (last index when full)
-        self.filled_i = 0  
+        self.filled_i = 0
         self.curr_i = 0  # current index to write to (ovewrite oldest data)
 
         return
@@ -52,7 +52,14 @@ class ReplayBuffer(object):
     def __len__(self):
         return self.filled_i
 
-    def push(self, observations, actions, rewards, next_observations, dones):
+    def push(self,
+             observations,
+             actions,
+             rewards,
+             next_observations,
+             dones,
+             accumulate=True,
+             gamma=0.95):
         # handle multiple parallel environments
         nentries = observations.shape[1]
         observations, actions, rewards, next_observations, dones = self.pack_self_play(
@@ -60,7 +67,7 @@ class ReplayBuffer(object):
 
         if self.curr_i + nentries > self.max_steps:
             # num of indices to roll over
-            rollover = self.max_steps - self.curr_i  
+            rollover = self.max_steps - self.curr_i
             for agent_i in range(self.num_agents):
                 self.obs_buffs[agent_i] = np.roll(self.obs_buffs[agent_i],
                                                   rollover,
@@ -97,6 +104,35 @@ class ReplayBuffer(object):
         if self.curr_i == self.max_steps:
             self.curr_i = 0
 
+        if accumulate:
+            done_thread = np.argwhere(dones[0]).flatten()
+            if len(done_thread) > 0:
+                print(done_thread)
+            for thread in done_thread:
+                accum_rwd, thd = np.zeros(self.num_agents), 16 - thread
+                tmp = self.curr_i - thd - nentries
+                accum_rwd += ([
+                    self.rew_buffs[i][self.curr_i - thd]
+                    for i in range(self.num_agents)
+                ])
+
+                # print(thd)
+
+                # print(tmp)
+                while True:
+                    # print(tmp)
+                    # print(accum_rwd)
+                    accum_rwd = np.array([
+                        self.rew_buffs[i][tmp] for i in range(self.num_agents)
+                    ]) + accum_rwd * gamma
+                    for agent_i in range(self.num_agents):
+                        self.rew_buffs[agent_i][tmp] = accum_rwd[agent_i]
+                    tmp -= nentries
+                    if self.done_buffs[0][tmp] or tmp < 0:
+                        break
+                # print(tmp)
+                # print(nentries)
+                # print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
         return
 
     def sample(self, N, device='cpu', norm_rews=True):

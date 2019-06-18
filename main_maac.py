@@ -120,6 +120,7 @@ def run(config):
                                                   device=device
                                                 #   to_gpu=config.use_gpu,
                                                   )
+                    print(sample[2][0][(sample[2][0] > 0)])
                     model.update_critic(sample, logger=logger)
                     model.update_policies(sample, logger=logger)
                     model.update_all_targets()
