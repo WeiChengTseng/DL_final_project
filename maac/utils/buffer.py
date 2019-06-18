@@ -107,7 +107,8 @@ class ReplayBuffer(object):
         if accumulate:
             done_thread = np.argwhere(dones[0]).flatten()
             if len(done_thread) > 0:
-                print(done_thread)
+                # print(done_thread)
+                pass
             for thread in done_thread:
                 accum_rwd, thd = np.zeros(self.num_agents), 16 - thread
                 tmp = self.curr_i - thd - nentries
