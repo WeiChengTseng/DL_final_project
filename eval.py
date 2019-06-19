@@ -561,6 +561,6 @@ if __name__ == '__main__':
         #                     order='team',
         #                     eval_epsoid=100)
         # eval_maac_with_random(maac_path, env)
-        # eval_maac_self_compete(maac_path, env)
-        eval_maacac_compete(maac_path, policy_striker_large,policy_goalie_large,env)
+        eval_maac_self_compete(maac_path, env)
+        # eval_maacac_compete(maac_path, policy_striker_large,policy_goalie_large,env)
     pass

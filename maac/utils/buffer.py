@@ -117,9 +117,6 @@ class ReplayBuffer(object):
                     for i in range(self.num_agents)
                 ])
 
-                # print(thd)
-
-                # print(tmp)
                 while True:
                     # print(tmp)
                     # print(accum_rwd)
@@ -129,11 +126,13 @@ class ReplayBuffer(object):
                     for agent_i in range(self.num_agents):
                         self.rew_buffs[agent_i][tmp] = accum_rwd[agent_i]
                     tmp -= nentries
-                    if self.done_buffs[0][tmp] or tmp < 0:
+                    if self.done_buffs[0][tmp]:
                         break
+                    if tmp < 0 and self.filled_i == self.max_steps:
+                        tmp += self.max_steps
                 # print(tmp)
                 # print(nentries)
-                # print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
+                print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
         return
 
     def sample(self, N, device='cpu', norm_rews=True):

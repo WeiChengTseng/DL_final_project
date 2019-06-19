@@ -2,13 +2,10 @@ import argparse
 import torch
 import os
 import numpy as np
-# from gym.spaces import Box, Discrete
 from pathlib import Path
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
-# from maac.utils.make_env import make_env
 from maac.utils.buffer import ReplayBuffer
-# from maac.utils.env_wrappers import SubprocVecEnv, DummyVecEnv
 from maac.attention_sac import AttentionSAC
 
 from env_exp import SocTwoEnv
