@@ -110,7 +110,7 @@ def run(config):
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
                 model.prep_training(device=device)
-                print('timestep:', t)
+                # print('timestep:', t)
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
                                                   norm_rews=False,
