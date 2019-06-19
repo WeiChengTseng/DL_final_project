@@ -483,8 +483,9 @@ if __name__ == '__main__':
     ppo_striker = './ppo/ckpt/PPO_strikerSoccerTwos_9920.pth'
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
 
-    maac_path = './maac/server/model.pt'
+    # maac_path = './maac/server/model.pt'
     maac_path = './maac/cedl/model.pt'
+    # maac_path = './maac/cedl_h2/model.pt'
     # maac_path = './maac/models/maac/run10/model.pt'
     # maac_path = './maac/models/maac/run14/model.pt'
 

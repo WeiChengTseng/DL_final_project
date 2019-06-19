@@ -11,7 +11,7 @@ from maac.attention_sac import AttentionSAC
 from env_exp import SocTwoEnv
 
 OBS_DIM = 112
-
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def run(config):
     model_dir = Path('./maac/models') / config.model_name
