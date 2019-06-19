@@ -131,7 +131,7 @@ def run(config):
                 ep_i += len(done_env)
                 break
 
-        if ep_i % config.save_interval < config.n_rollout_threads:
+        if ep_i % config.save_interval == 0:
             model.prep_rollouts(device=device)
             os.makedirs(run_dir / 'incremental', exist_ok=True)
             model.save(run_dir / 'incremental' / ('model_ep%i.pt' %
@@ -175,7 +175,7 @@ if __name__ == '__main__':
                         default=1024,
                         type=int,
                         help="Batch size for training")
-    parser.add_argument("--save_interval", default=1000, type=int)
+    parser.add_argument("--save_interval", default=2000, type=int)
     parser.add_argument("--pol_hidden_dim", default=128, type=int)
     parser.add_argument("--critic_hidden_dim", default=128, type=int)
     parser.add_argument("--attend_heads", default=4, type=int)
