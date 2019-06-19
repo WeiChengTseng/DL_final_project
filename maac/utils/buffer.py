@@ -132,7 +132,7 @@ class ReplayBuffer(object):
                         tmp += self.max_steps
                 # print(tmp)
                 # print(nentries)
-                print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
+                # print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
         return
 
     def sample(self, N, device='cpu', norm_rews=True):
