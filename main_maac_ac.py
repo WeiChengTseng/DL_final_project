@@ -75,6 +75,7 @@ def run(config):
     ac_ckpt = torch.load(config.ac_ckpt, map_location=device)
     ac_striker = A2CWraper(7).to(device)
     ac_goalie = A2CWraper(5).to(device)
+    print(ac_goalie.policy.device)
     ac_striker.policy.load_state_dict(ac_ckpt['striker_a2c'])
     ac_goalie.policy.load_state_dict(ac_ckpt['goalie_a2c'])
 
@@ -97,14 +98,14 @@ def run(config):
                 torch.FloatTensor(obs[i]).to(device)
                 for i in range(model.nagents)
             ]
+            with torch.zero_grad():
+                ac_striker_action = ac_striker(torch_obs[2])
+                ac_goalie_action = ac_goalie(torch_obs[3])
 
-            ac_striker_action = ac_striker(torch_obs[2])
-            ac_goalie_action = ac_goalie(torch_obs[3])
-
-            ac_striker_action_oh = np.zeros((8, 7), dtype=np.float32)
-            ac_goalie_action_oh = np.zeros((8, 5), dtype=np.float32)
-            ac_striker_action_oh[np.arange(8), ac_striker_action.cpu().numpy()] = 1
-            ac_goalie_action_oh[np.arange(8), ac_goalie_action.cpu().numpy()] = 1
+                ac_striker_action_oh = np.zeros((8, 7), dtype=np.float32)
+                ac_goalie_action_oh = np.zeros((8, 5), dtype=np.float32)
+                ac_striker_action_oh[np.arange(8), ac_striker_action.cpu().numpy()] = 1
+                ac_goalie_action_oh[np.arange(8), ac_goalie_action.cpu().numpy()] = 1
 
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
