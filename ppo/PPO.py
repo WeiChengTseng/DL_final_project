@@ -3,47 +3,7 @@ import torch.nn as nn
 from torch.distributions import Categorical
 import gym
 import numpy as np
-
-
-
-# class Memory:
-#     def __init__(self):
-#         self.actions = []
-#         self.states = []
-#         self.logprobs = []
-#         self.rewards = []
-#         return
-
-#     def clear_memory(self):
-#         del self.actions[:]
-#         del self.states[:]
-#         del self.logprobs[:]
-#         del self.rewards[:]
-#         return
-
-#     def update_action(self, action):
-#         # print(list(action))
-#         # print(action)
-
-#         self.actions += list(action)
-#         return
-
-#     def update_reward(self, reward):
-#         if isinstance(reward, float):
-#             self.actions.append(reward)
-#         else:
-#             self.rewards += list(reward)
-#         return
-
-#     def update_state(self, state):
-#         self.states += list(state)
-#         print(self.states)
-#         return
-
-#     def update_logprobs(self, logprob):
-#         self.logprobs += list(logprob)
-#         print(self.logprobs)
-#         return
+import random
 
 
 class ActorCritic(nn.Module):
@@ -60,31 +20,42 @@ class ActorCritic(nn.Module):
             nn.Linear(n_latent_var, action_dim), nn.Softmax(dim=-1))
 
         # critic
-        self.value_layer = nn.Sequential(
-            nn.Linear(state_dim, n_latent_var), nn.Tanh(),
-            nn.Linear(n_latent_var, n_latent_var), nn.Tanh(),
-            nn.Linear(n_latent_var, 1))
+        self.value_layer = nn.Sequential(nn.Linear(state_dim, n_latent_var),
+                                         nn.Tanh(),
+                                         nn.Linear(n_latent_var, n_latent_var),
+                                         nn.Tanh(), nn.Linear(n_latent_var, 1))
 
     def forward(self):
         raise NotImplementedError
 
-    def act(self, state, memory):
+    def act_test(self, state, action_dim):
+        assert len(state) == 8, "give me 8 agent's state"
+        model_state = torch.from_numpy(state).float().to(self.device)
+        with torch.no_grad():
+            model_action = self.action_layer(model_state)
+            index = torch.argmax(model_action, 1)
+            model_index = index.detach().numpy()
+            return model_index
+
+    def act(self, state, memory=None):
         state = torch.from_numpy(state).float().to(self.device)
         action_probs = self.action_layer(state)
         dist = Categorical(action_probs)
         action = dist.sample()
 
-        if state.dim() >= 1:
-            memory.update_state(state)
-            memory.update_action(action)
-            memory.update_logprobs(dist.log_prob(action))
-            # print(action.numpy())
-            return action.numpy()
-        else:
-            memory.states.append(state)
-            memory.actions.append(action)
-            memory.logprobs.append(dist.log_prob(action))
-            return action.item()
+        if memory:
+            if state.dim() >= 1:
+                memory.update_state(state)
+                memory.update_action(action)
+                memory.update_logprobs(dist.log_prob(action))
+                return action.numpy()
+            else:
+                memory.states.append(state)
+                memory.actions.append(action)
+                memory.logprobs.append(dist.log_prob(action))
+                return action.item()
+
+        return action
 
     def evaluate(self, state, action):
         action_probs = self.action_layer(state)
@@ -102,12 +73,13 @@ class PPO:
     def __init__(self,
                  state_dim,
                  action_dim,
-                 n_latent_var,
-                 lr,
-                 gamma,
-                 K_epochs,
-                 eps_clip,
-                 device='cpu'):
+                 n_latent_var=64,
+                 lr=1e-3,
+                 gamma=0.99,
+                 K_epochs=4,
+                 eps_clip=0.2,
+                 device='cpu',
+                 ckpt_path=None):
         self.lr = lr
         self.gamma = gamma
         self.eps_clip = eps_clip
@@ -120,7 +92,19 @@ class PPO:
         self.policy_old = ActorCritic(state_dim, action_dim, n_latent_var,
                                       device).to(self.device)
 
+        if ckpt_path:
+            self.policy.load_state_dict(
+                torch.load(ckpt_path, map_location=device))
+            self.policy_old.load_state_dict(
+                torch.load(ckpt_path, map_location=device))
+            print('ppo restore')
+
         self.MseLoss = nn.MSELoss()
+
+    def act(self, states):
+
+
+        return self.policy.act(states.numpy()).view(8,1)
 
     def update(self, memory):
         rewards = memory.rewards
