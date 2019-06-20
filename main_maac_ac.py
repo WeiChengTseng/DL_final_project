@@ -73,8 +73,8 @@ def run(config):
         device=device)
 
     ac_ckpt = torch.load(config.ac_ckpt, map_location=device)
-    ac_striker = A2CWraper(7)
-    ac_goalie = A2CWraper(5)
+    ac_striker = A2CWraper(7).to(device)
+    ac_goalie = A2CWraper(5).to(device)
     ac_striker.policy.load_state_dict(ac_ckpt['striker_a2c'])
     ac_goalie.policy.load_state_dict(ac_ckpt['goalie_a2c'])
 
