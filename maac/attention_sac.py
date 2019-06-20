@@ -58,7 +58,9 @@ class AttentionSAC(object):
         self.self_play, self.duplicate_policy = self_play, duplicate_policy
         if self_play and duplicate_policy:
             self.agents += self.agents
-        critic_sa_size = (sa_size * 2)
+
+        if self_play:
+            critic_sa_size = (sa_size * 2)
         print(self.agents)
 
 
