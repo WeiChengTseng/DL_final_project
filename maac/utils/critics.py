@@ -12,7 +12,12 @@ class AttentionCritic(nn.Module):
     observations and actions.
     """
 
-    def __init__(self, sa_sizes, hidden_dim=32, norm_in=True, attend_heads=1, self_paly=True):
+    def __init__(self,
+                 sa_sizes,
+                 hidden_dim=32,
+                 norm_in=True,
+                 attend_heads=1,
+                 self_paly=True):
         """
         Inputs:
             sa_sizes (list of (int, int)): Size of state and action spaces per
@@ -59,7 +64,7 @@ class AttentionCritic(nn.Module):
             state_encoder.add_module('s_enc_fc1', nn.Linear(sdim, hidden_dim))
             state_encoder.add_module('s_enc_nl', nn.LeakyReLU())
             self.state_encoders.append(state_encoder)
-        
+
         # print(len(self.state_encoders))
 
         attend_dim = hidden_dim // attend_heads
@@ -120,7 +125,6 @@ class AttentionCritic(nn.Module):
         if agents is None:
             agents = range(len(self.critic_encoders))
 
-
         states = [s for s, a in inps]
         actions = [a for s, a in inps]
         inps = [torch.cat((s, a), dim=1) for s, a in inps]
@@ -168,7 +172,7 @@ class AttentionCritic(nn.Module):
                 attend_weights = F.softmax(scaled_attend_logits, dim=2)
                 other_values = (torch.stack(values).permute(1, 2, 0) *
                                 attend_weights).sum(dim=2)
-                                
+
                 other_all_values[i].append(other_values)
                 all_attend_logits[i].append(attend_logits)
                 all_attend_probs[i].append(attend_weights)

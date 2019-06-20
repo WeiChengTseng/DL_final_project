@@ -25,6 +25,8 @@ class AttentionSAC(object):
                  pol_hidden_dim=128,
                  critic_hidden_dim=128,
                  attend_heads=4,
+                 self_play=True,
+                 duplicate_policy=True,
                  device='cpu',
                  **kwargs):
         """
@@ -51,6 +53,9 @@ class AttentionSAC(object):
         ]
 
         # for self_play setting
+        self.self_play, self.duplicate_policy = self_play, duplicate_policy
+        if self_play and duplicate_policy:
+            self.agents += self.agents
         critic_sa_size = (sa_size * 2)
 
         self.critic = AttentionCritic(critic_sa_size,
@@ -77,17 +82,23 @@ class AttentionSAC(object):
         self.trgt_critic_dev = device  # device for target critics
         self.niter = 0
 
-    @property
-    def policies(self, self_play=True):
-        return [a.policy for a in self.agents] * 2 if self_play else [
-            a.policy for a in self.agents
-        ]
+        return
 
     @property
-    def target_policies(self, self_play=True):
-        return [a.target_policy for a in self.agents] * 2 if self_play else [
-            a.target_policy for a in self.agents
-        ]
+    def policies(self, self_play=True, duplicate_policy=False):
+        # return [a.policy for a in self.agents
+        #         ] * 2 if self_play and not duplicate_policy else [
+        #             a.policy for a in self.agents
+        #         ]
+        return [a.policy for a in self.agents]
+
+    @property
+    def target_policies(self, self_play=True, duplicate_policy=False):
+        # return [a.target_policy for a in self.agents
+        #         ] * 2 if self_play and not duplicate_policy else [
+        #             a.target_policy for a in self.agents
+        #         ]
+        return [a.target_policy for a in self.agents]
 
     def step(self, observations, explore=False, device='cpu'):
         """
@@ -101,12 +112,6 @@ class AttentionSAC(object):
             a.step(obs, explore=explore)
             for a, obs in zip(self.agents, observations)
         ]
-
-    def self_play(self, critic_in):
-        for his in critic_in:
-
-            pass
-        return
 
     def update_critic(self, sample, soft=True, logger=None, **kwargs):
         """
@@ -141,6 +146,7 @@ class AttentionSAC(object):
             q_loss += MSELoss(pq, target_q.detach())
             for reg in regs:
                 q_loss += reg  # regularizing attention
+
         q_loss.backward()
         self.critic.scale_shared_grads()
         grad_norm = torch.nn.utils.clip_grad_norm_(self.critic.parameters(),
@@ -236,7 +242,8 @@ class AttentionSAC(object):
             a.target_policy.train()
 
         if not self.pol_dev == device:
-            print('prep_training: change device from {} to {}'.format(self.pol_dev, device))
+            print('prep_training: change device from {} to {}'.format(
+                self.pol_dev, device))
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
@@ -257,7 +264,8 @@ class AttentionSAC(object):
             a.policy.eval()
         # only need main policy for rollouts
         if not self.pol_dev == device:
-            print('prep_rollouts: change device from {} to {}'.format(self.pol_dev, device))
+            print('prep_rollouts: change device from {} to {}'.format(
+                self.pol_dev, device))
             for a in self.agents:
                 a.policy = (a.policy).to(device)
             self.pol_dev = device
@@ -294,6 +302,8 @@ class AttentionSAC(object):
                       pol_hidden_dim=128,
                       critic_hidden_dim=128,
                       attend_heads=4,
+                      self_play=True,
+                      duplicate_policy=False,
                       **kwargs):
         """
         Instantiate instance of this class from multi-agent environment
@@ -320,7 +330,9 @@ class AttentionSAC(object):
             'critic_hidden_dim': critic_hidden_dim,
             'attend_heads': attend_heads,
             'agent_init_params': agent_init_params,
-            'sa_size': sa_size
+            'sa_size': sa_size,
+            'self_play': self_play,
+            'duplicate_policy': duplicate_policy
         }
         instance = cls(**init_dict)
         instance.init_dict = init_dict

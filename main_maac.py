@@ -34,7 +34,6 @@ def run(config):
     logger = SummaryWriter(str(log_dir))
     device = 'cuda' if config.use_gpu and torch.cuda.is_available() else 'cpu'
 
-    print('The training process use', device)
 
     torch.manual_seed(run_num)
     np.random.seed(run_num)
@@ -47,6 +46,8 @@ def run(config):
                     render=config.render)
     obs = env.reset('team')
 
+    print('The training process use', device)
+
     # create the model
     model = AttentionSAC.init_from_env(
         env,
@@ -58,10 +59,15 @@ def run(config):
         critic_hidden_dim=config.critic_hidden_dim,
         attend_heads=config.attend_heads,
         reward_scale=config.reward_scale,
+        self_play=config.self_play,
+        duplicate_policy=config.duplicate_policy,
         device=device)
 
+    if not config.self_play: 
+        config.n_rollout_threads /= 2
+
     replay_buffer = ReplayBuffer(config.buffer_length, model.nagents,
-                                 [OBS_DIM, OBS_DIM], [7, 5])
+                                 [OBS_DIM, OBS_DIM], [7, 5], config.self_play)
 
     t, ep_i = 0, 0
     model.prep_rollouts(device=device)
@@ -184,6 +190,8 @@ if __name__ == '__main__':
     parser.add_argument("--tau", default=0.001, type=float)
     parser.add_argument("--gamma", default=0.99, type=float)
     parser.add_argument("--reward_scale", default=100., type=float)
+    parser.add_argument("--self_play", default=True, type=bool)
+    parser.add_argument("--duplicate_policy", default=False, type=bool)
     parser.add_argument("--use_gpu", action='store_true')
 
     config = parser.parse_args()

@@ -61,9 +61,14 @@ class ReplayBuffer(object):
              accumulate=True,
              gamma=0.95):
         # handle multiple parallel environments
-        nentries = observations.shape[1]
-        observations, actions, rewards, next_observations, dones = self.pack_self_play(
-            observations, actions, rewards, next_observations, dones)
+        if self.self_play:
+            nentries = observations.shape[1]
+            observations, actions, rewards, next_observations, dones = self.pack_self_play(
+                observations, actions, rewards, next_observations, dones)
+        else:
+            nentries = observations.shape[1] // 2
+            observations, actions, rewards, next_observations, dones = self.pack_compete(
+                observations, actions, rewards, next_observations, dones)
 
         if self.curr_i + nentries > self.max_steps:
             # num of indices to roll over
@@ -181,6 +186,28 @@ class ReplayBuffer(object):
         nex_obs_packed[:2] = next_observations
         nex_obs_packed[2:] = [
             next_observations[0][swap], next_observations[1][swap]
+        ]
+
+        return obs_packed, ac_packed, rew_packed, nex_obs_packed, done_packed
+
+    def pack_compete(self, observations, actions, rewards, next_observations,
+                     dones):
+        swap = np.roll(np.arange(16), 8)
+        obs_packed = np.zeros((self.num_agents, 16, 112))
+        nex_obs_packed = np.zeros((self.num_agents, 16, 112))
+
+        ac_packed = [
+            actions[0][:8], actions[1][:8], actions[0][8:], actions[1][8:]
+        ]
+        rew_packed = [
+            rewards[0][:8], rewards[1][:8], rewards[0][8:], rewards[1][8:]
+        ]
+        done_packed = [dones[0][:8], dones[1][:8], dones[0][8:], dones[1][8:]]
+        obs_packed[:2], obs_packed[2:] = observations[:, :8], observations[:,
+                                                                           8:]
+        nex_obs_packed[:2] = next_observations[:, :8]
+        nex_obs_packed[2:] = [
+            next_observations[0][8:], next_observations[1][8:]
         ]
 
         return obs_packed, ac_packed, rew_packed, nex_obs_packed, done_packed

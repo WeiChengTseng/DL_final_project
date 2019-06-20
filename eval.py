@@ -483,8 +483,8 @@ if __name__ == '__main__':
     ppo_striker = './ppo/ckpt/PPO_strikerSoccerTwos_9920.pth'
     ppo_goalie = './ppo/ckpt/PPO_goalieSoccerTwos_9920.pth'
 
-    # maac_path = './maac/server/model.pt'
-    maac_path = './maac/cedl/model.pt'
+    maac_path = './maac/server/model.pt'
+    # maac_path = './maac/cedl/model.pt'
     # maac_path = './maac/cedl_h2/model.pt'
     # maac_path = './maac/models/maac/run10/model.pt'
     # maac_path = './maac/models/maac/run14/model.pt'
@@ -562,7 +562,7 @@ if __name__ == '__main__':
         #                     device,
         #                     order='team',
         #                     eval_epsoid=100)
-        eval_maac_with_random(maac_path, env)
+        # eval_maac_with_random(maac_path, env)
         # eval_maac_self_compete(maac_path, env)
-        # eval_maacac_compete(maac_path, policy_striker_large,policy_goalie_large,env)
+        eval_maacac_compete(maac_path, policy_striker_large,policy_goalie_large,env)
     pass
