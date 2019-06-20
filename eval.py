@@ -21,6 +21,7 @@ from maac_double.attention_sac import AttentionSACDouble
 
 from env_exp import SocTwoEnv
 
+
 def parse_double(obs):
     parsed_obs = [None] * 4
     parsed_obs[0] = obs[0][:8]
@@ -28,6 +29,7 @@ def parse_double(obs):
     parsed_obs[1] = obs[1][:8]
     parsed_obs[3] = obs[1][8:]
     return np.array(parsed_obs)
+
 
 def eval_with_random_agent(net_striker,
                            net_goalie,
@@ -483,7 +485,8 @@ def eval_maacdoubleac_compete(model_path,
                               eval_epsoid=200):
     maac = AttentionSACDouble.init_from_save(model_path)
     # obs_striker, obs_goalie = env.reset(order)
-    obs_striker, obs_goalie, obs_striker2, obs_goalie2 = parse_double(env.reset(order))
+    obs_striker, obs_goalie, obs_striker2, obs_goalie2 = parse_double(
+        env.reset(order))
 
     actions_strikers = [None, None]
     actions_goalies = [None, None]
@@ -491,20 +494,22 @@ def eval_maacdoubleac_compete(model_path,
 
     epsoid = 0
     while epsoid < eval_epsoid:
-        obs_striker = Variable(
-            torch.from_numpy(obs_striker).float()).to(device)
-        obs_goalie = Variable(torch.from_numpy(obs_goalie).float()).to(device)
+        obs_striker = (torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = (torch.from_numpy(obs_goalie).float()).to(device)
+        obs_striker2 = (torch.from_numpy(obs_striker2).float()).to(device)
+        obs_goalie2 = (torch.from_numpy(obs_goalie2).float()).to(device)
 
-        action_maac = maac.step((obs_striker, obs_goalie, obs_striker2, obs_goalie2), explore=True)
+        action_maac = maac.step(
+            (obs_striker, obs_goalie, obs_striker2, obs_goalie2), explore=True)
 
         # print(action_maac)
 
-        actions_strikers[0] = torch.argmax(action_maac[0][:8], dim=-1)
-        actions_goalies[0] = torch.argmax(action_maac[1][:8], dim=-1)
+        actions_strikers[0] = torch.argmax(action_maac[0], dim=-1)
+        actions_goalies[0] = torch.argmax(action_maac[1], dim=-1)
         # print(actions_strikers[0])
 
-        policy_strikers, _ = strikers(obs_striker2[8:])
-        policy_goalies, _ = goalies(obs_goalie2[8:])
+        policy_strikers, _ = strikers(obs_striker2[:])
+        policy_goalies, _ = goalies(obs_goalie2[:])
 
         probs_striker = F.softmax(policy_strikers, dim=-1)
         probs_goalie = F.softmax(policy_goalies, dim=-1)
@@ -519,7 +524,7 @@ def eval_maacdoubleac_compete(model_path,
 
         obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
                                           order)
-        obs_striker, obs_goalie = obs
+        obs_striker, obs_goalie, obs_striker2, obs_goalie2 = parse_double(obs)
 
         for i in np.argwhere(dones[0]).flatten():
             epsoid += 1
@@ -549,7 +554,7 @@ if __name__ == '__main__':
 
     # maac_path = './maac/server/model.pt'
     # maac_path = './maac/dup_policy/model.pt'
-    maacdouble_path = './maac_double/models/model.pt'
+    maacdouble_path = './maac_double/server/model.pt'
     # maac_path = './maac/cedl/model.pt'
     # maac_path = './maac/cedl_h2/model.pt'
     # maac_path = './maac/models/maac/run10/model.pt'
