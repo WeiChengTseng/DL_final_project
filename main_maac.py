@@ -95,7 +95,7 @@ def run(config):
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
             # shape [(16, 7), (16, 5)]
-
+            # print(torch_agent_actions)
             # convert actions to numpy arrays
             agent_actions = [
                 ac.data.cpu().numpy() for ac in torch_agent_actions

@@ -52,11 +52,15 @@ class AttentionSAC(object):
             for params in agent_init_params
         ]
 
+        print('duplicate policy:', duplicate_policy)
+
         # for self_play setting
         self.self_play, self.duplicate_policy = self_play, duplicate_policy
         if self_play and duplicate_policy:
             self.agents += self.agents
         critic_sa_size = (sa_size * 2)
+        print(self.agents)
+
 
         self.critic = AttentionCritic(critic_sa_size,
                                       hidden_dim=critic_hidden_dim,
