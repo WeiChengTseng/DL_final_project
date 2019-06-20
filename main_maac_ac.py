@@ -103,8 +103,8 @@ def run(config):
 
             ac_striker_action_oh = np.zeros((8, 7), dtype=np.float32)
             ac_goalie_action_oh = np.zeros((8, 5), dtype=np.float32)
-            ac_striker_action_oh[np.arange(8), ac_striker_action] = 1
-            ac_goalie_action_oh[np.arange(8), ac_goalie_action] = 1
+            ac_striker_action_oh[np.arange(8), ac_striker_action.cpu().numpy()] = 1
+            ac_goalie_action_oh[np.arange(8), ac_goalie_action.cpu().numpy()] = 1
 
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
