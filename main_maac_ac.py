@@ -98,7 +98,7 @@ def run(config):
                 torch.FloatTensor(obs[i]).to(device)
                 for i in range(model.nagents)
             ]
-            with torch.zero_grad():
+            with torch.no_grad():
                 ac_striker_action = ac_striker(torch_obs[2])
                 ac_goalie_action = ac_goalie(torch_obs[3])
 
