@@ -2,19 +2,16 @@ import argparse
 import torch
 import os
 import numpy as np
-# from gym.spaces import Box, Discrete
 from pathlib import Path
 from torch.autograd import Variable
 from tensorboardX import SummaryWriter
-# from maac.utils.make_env import make_env
 from maac.utils.buffer import ReplayBuffer
-# from maac.utils.env_wrappers import SubprocVecEnv, DummyVecEnv
 from maac.attention_sac import AttentionSAC
 
 from env_exp import SocTwoEnv
 
 OBS_DIM = 112
-
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 def run(config):
     model_dir = Path('./maac/models') / config.model_name
@@ -37,7 +34,6 @@ def run(config):
     logger = SummaryWriter(str(log_dir))
     device = 'cuda' if config.use_gpu and torch.cuda.is_available() else 'cpu'
 
-    print('The training process use', device)
 
     torch.manual_seed(run_num)
     np.random.seed(run_num)
@@ -50,6 +46,8 @@ def run(config):
                     render=config.render)
     obs = env.reset('team')
 
+    print('The training process use', device)
+
     # create the model
     model = AttentionSAC.init_from_env(
         env,
@@ -61,10 +59,15 @@ def run(config):
         critic_hidden_dim=config.critic_hidden_dim,
         attend_heads=config.attend_heads,
         reward_scale=config.reward_scale,
+        self_play=config.self_play,
+        duplicate_policy=config.duplicate_policy,
         device=device)
 
+    if not config.self_play: 
+        config.n_rollout_threads /= 2
+
     replay_buffer = ReplayBuffer(config.buffer_length, model.nagents,
-                                 [OBS_DIM, OBS_DIM], [7, 5])
+                                 [OBS_DIM, OBS_DIM], [7, 5], config.self_play)
 
     t, ep_i = 0, 0
     model.prep_rollouts(device=device)
@@ -92,7 +95,7 @@ def run(config):
             # get actions as torch Variables
             torch_agent_actions = model.step(torch_obs, explore=True)
             # shape [(16, 7), (16, 5)]
-
+            # print(torch_agent_actions)
             # convert actions to numpy arrays
             agent_actions = [
                 ac.data.cpu().numpy() for ac in torch_agent_actions
@@ -113,20 +116,28 @@ def run(config):
             if (len(replay_buffer) >= config.batch_size and
                 (t % config.steps_per_update) < config.n_rollout_threads):
                 model.prep_training(device=device)
+                # print('timestep:', t)
                 for u_i in range(config.num_updates):
                     sample = replay_buffer.sample(config.batch_size,
                                                   norm_rews=False,
-                                                  to_gpu=config.use_gpu)
+                                                  device=device
+                                                #   to_gpu=config.use_gpu,
+                                                  )
+                    # print(sample[2][0][(sample[2][0] > 0)])
                     model.update_critic(sample, logger=logger)
                     model.update_policies(sample, logger=logger)
                     model.update_all_targets()
                 model.prep_rollouts(device=device)
 
-            for i in np.argwhere(dones):
-                ep_i += 1
-                pass
 
-        if ep_i % config.save_interval < config.n_rollout_threads:
+            done_env = np.argwhere(dones[0])
+            if len(done_env) != 0:
+                # for i in done_env:
+                #     ep_i += 1
+                ep_i += len(done_env)
+                break
+
+        if ep_i % config.save_interval == 0:
             model.prep_rollouts(device=device)
             os.makedirs(run_dir / 'incremental', exist_ok=True)
             model.save(run_dir / 'incremental' / ('model_ep%i.pt' %
@@ -170,7 +181,7 @@ if __name__ == '__main__':
                         default=1024,
                         type=int,
                         help="Batch size for training")
-    parser.add_argument("--save_interval", default=1000, type=int)
+    parser.add_argument("--save_interval", default=2000, type=int)
     parser.add_argument("--pol_hidden_dim", default=128, type=int)
     parser.add_argument("--critic_hidden_dim", default=128, type=int)
     parser.add_argument("--attend_heads", default=4, type=int)
@@ -179,6 +190,8 @@ if __name__ == '__main__':
     parser.add_argument("--tau", default=0.001, type=float)
     parser.add_argument("--gamma", default=0.99, type=float)
     parser.add_argument("--reward_scale", default=100., type=float)
+    parser.add_argument("--self_play", default=True, type=bool)
+    parser.add_argument("--duplicate_policy", default=False, type=bool)
     parser.add_argument("--use_gpu", action='store_true')
 
     config = parser.parse_args()

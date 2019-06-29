@@ -44,7 +44,7 @@ class ReplayBuffer(object):
             self.done_buffs.append(np.zeros(max_steps, dtype=np.uint8))
 
         # index of first empty location in buffer (last index when full)
-        self.filled_i = 0  
+        self.filled_i = 0
         self.curr_i = 0  # current index to write to (ovewrite oldest data)
 
         return
@@ -52,15 +52,27 @@ class ReplayBuffer(object):
     def __len__(self):
         return self.filled_i
 
-    def push(self, observations, actions, rewards, next_observations, dones):
+    def push(self,
+             observations,
+             actions,
+             rewards,
+             next_observations,
+             dones,
+             accumulate=True,
+             gamma=0.95):
         # handle multiple parallel environments
-        nentries = observations.shape[1]
-        observations, actions, rewards, next_observations, dones = self.pack_self_play(
-            observations, actions, rewards, next_observations, dones)
+        if self.self_play:
+            nentries = observations.shape[1]
+            observations, actions, rewards, next_observations, dones = self.pack_self_play(
+                observations, actions, rewards, next_observations, dones)
+        else:
+            nentries = observations.shape[1] // 2
+            observations, actions, rewards, next_observations, dones = self.pack_compete(
+                observations, actions, rewards, next_observations, dones)
 
         if self.curr_i + nentries > self.max_steps:
             # num of indices to roll over
-            rollover = self.max_steps - self.curr_i  
+            rollover = self.max_steps - self.curr_i
             for agent_i in range(self.num_agents):
                 self.obs_buffs[agent_i] = np.roll(self.obs_buffs[agent_i],
                                                   rollover,
@@ -97,14 +109,43 @@ class ReplayBuffer(object):
         if self.curr_i == self.max_steps:
             self.curr_i = 0
 
+        if accumulate:
+            done_thread = np.argwhere(dones[0]).flatten()
+            if len(done_thread) > 0:
+                # print(done_thread)
+                pass
+            for thread in done_thread:
+                accum_rwd, thd = np.zeros(self.num_agents), 16 - thread
+                tmp = self.curr_i - thd - nentries
+                accum_rwd += ([
+                    self.rew_buffs[i][self.curr_i - thd]
+                    for i in range(self.num_agents)
+                ])
+
+                while True:
+                    # print(tmp)
+                    # print(accum_rwd)
+                    accum_rwd = np.array([
+                        self.rew_buffs[i][tmp] for i in range(self.num_agents)
+                    ]) + accum_rwd * gamma
+                    for agent_i in range(self.num_agents):
+                        self.rew_buffs[agent_i][tmp] = accum_rwd[agent_i]
+                    tmp -= nentries
+                    if self.done_buffs[0][tmp]:
+                        break
+                    if tmp < 0 and self.filled_i == self.max_steps:
+                        tmp += self.max_steps
+                # print(tmp)
+                # print(nentries)
+                # print(self.rew_buffs[0][tmp + np.arange(150) * nentries])
         return
 
-    def sample(self, N, to_gpu=False, norm_rews=True):
+    def sample(self, N, device='cpu', norm_rews=True):
         inds = np.random.choice(np.arange(self.filled_i), size=N, replace=True)
-        if to_gpu:
-            cast = lambda x: Variable(Tensor(x), requires_grad=False).cuda()
-        else:
-            cast = lambda x: Variable(Tensor(x), requires_grad=False)
+        # if to_gpu:
+        #     cast = lambda x: Variable(Tensor(x), requires_grad=False).cuda()
+        # else:
+        cast = lambda x: Variable(Tensor(x), requires_grad=False).to(device)
         if norm_rews:
             ret_rews = [
                 cast((self.rew_buffs[i][inds] -
@@ -145,6 +186,28 @@ class ReplayBuffer(object):
         nex_obs_packed[:2] = next_observations
         nex_obs_packed[2:] = [
             next_observations[0][swap], next_observations[1][swap]
+        ]
+
+        return obs_packed, ac_packed, rew_packed, nex_obs_packed, done_packed
+
+    def pack_compete(self, observations, actions, rewards, next_observations,
+                     dones):
+        swap = np.roll(np.arange(16), 8)
+        obs_packed = np.zeros((self.num_agents, 16, 112))
+        nex_obs_packed = np.zeros((self.num_agents, 16, 112))
+
+        ac_packed = [
+            actions[0][:8], actions[1][:8], actions[0][8:], actions[1][8:]
+        ]
+        rew_packed = [
+            rewards[0][:8], rewards[1][:8], rewards[0][8:], rewards[1][8:]
+        ]
+        done_packed = [dones[0][:8], dones[1][:8], dones[0][8:], dones[1][8:]]
+        obs_packed[:2], obs_packed[2:] = observations[:, :8], observations[:,
+                                                                           8:]
+        nex_obs_packed[:2] = next_observations[:, :8]
+        nex_obs_packed[2:] = [
+            next_observations[0][8:], next_observations[1][8:]
         ]
 
         return obs_packed, ac_packed, rew_packed, nex_obs_packed, done_packed

@@ -42,7 +42,7 @@ class Maddpg:
         self.g_actors_target = deepcopy(self.g_actor)
         self.critic_target = deepcopy(self.critic)
         self.critic_optimizer = [Adam(x.parameters(),
-                                      lr=lr) for x in self.critic]
+                                      lr=lr*3) for x in self.critic]
         self.s_actor_optimizer = [Adam(x.parameters(),
                                      lr=lr) for x in self.s_actor]
         self.g_actor_optimizer = [Adam(x.parameters(),
@@ -136,6 +136,7 @@ class Maddpg:
             self.critic_optimizer[0].zero_grad()
             self.critic_optimizer[1].zero_grad()
             
+
             s1_current_Q = self.critic[0](whole_state_blue_flat, whole_action_blue_flat.detach())
             s2_current_Q = self.critic[0](whole_state_red_flat,whole_action_red_flat.detach())
             g1_current_Q = self.critic[1](whole_state_blue_flat, whole_action_blue_flat.detach())
