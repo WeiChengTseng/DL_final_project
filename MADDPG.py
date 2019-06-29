@@ -17,7 +17,7 @@ def soft_update(target, source, t):
 class Maddpg:
     def __init__(self, n_striker = 1,n_goalie = 1, g_dim_act = 5,use_cuda = True,lr = 0.0001,
                 dim_obs = 112, s_dim_act = 7, batchSize_d2 = 512, GAMMA = 0.99, scale_reward = 1., 
-                tau = 0.01, update_timesg_red_actor_losstep = 20):
+                tau = 0.01, update_timestep = 20):
         if n_striker != n_goalie:
             # winsound.Beep(800,2000)
             # os.system('shutdown -s -t 0') 
@@ -51,6 +51,9 @@ class Maddpg:
         
         self.steps_done = 0
         self.episode_done = 0
+    def save_model(self):
+        torch.save(self.s_actor)
+        torch.save(self.g_actor)
     def select_action(self, striker_batch, goalie_batch):
         # state_batch: n_agents x state_dim
         striker_batch = torch.from_numpy(striker_batch)
@@ -69,6 +72,7 @@ class Maddpg:
 
         self.steps_done += 1
         return s_act, g_act
+    
 
     def update_policy(self, memory,step,writer):
 
@@ -231,6 +235,7 @@ class Maddpg:
             g_state = g_state.view(total_numbers_of_data*2,-1)
             s_action = self.s_actor[agent_index](s_state)
             g_action = self.g_actor[agent_index](g_state)
+            
             # # #
             # striker #
                     # #
@@ -253,7 +258,7 @@ class Maddpg:
             self.s_actor_optimizer[agent_index].step()
 
             g_red_actor_loss = -self.critic[1](whole_state_red_flat, whole_action_red_flat)
-            g_red_actor_loss = g_blue_actor_loss.mean()
+            g_red_actor_loss = g_red_actor_loss.mean()
             writer.add_scalars('g_red_loss',{'train':(g_red_actor_loss.item())},step)
             g_red_actor_loss.backward(retain_graph=True)
             self.g_actor_optimizer[agent_index].step()
