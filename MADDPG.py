@@ -72,6 +72,7 @@ class Maddpg:
 
         self.steps_done += 1
         return s_act, g_act
+    
 
     def update_policy(self, memory,step,writer):
 
@@ -135,7 +136,8 @@ class Maddpg:
             self.critic_optimizer[0].zero_grad()
             self.critic_optimizer[1].zero_grad()
             
-            s1_current_Q = self.critic[0](whole_state_blue_flat, whole_action_blue_flat.detach)
+
+            s1_current_Q = self.critic[0](whole_state_blue_flat, whole_action_blue_flat.detach())
             s2_current_Q = self.critic[0](whole_state_red_flat,whole_action_red_flat.detach())
             g1_current_Q = self.critic[1](whole_state_blue_flat, whole_action_blue_flat.detach())
             g2_current_Q = self.critic[1](whole_state_red_flat, whole_action_red_flat.detach())
