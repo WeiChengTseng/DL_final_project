@@ -29,14 +29,14 @@ HIDDENDIMGOALIE = 64
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--Lr", type=float, default=1e-2, help="Learning Rate")
+    parser.add_argument("--Lr", type=float, default=1e-4, help="Learning Rate")
     parser.add_argument(
-        "--Ga", type=float, default=0.95, help="Discount coefficient")
-    parser.add_argument("--Bz", type=int, default=1024, help="Batch Size")
+        "--Ga", type=float, default=0.99, help="Discount coefficient")
+    parser.add_argument("--Bz", type=int, default=512, help="Batch Size")
     parser.add_argument("--Tau", type=float, default=0.01, help="Tau")
     parser.add_argument("--UpdateEpisode",type=int,default=100,
         help="At least have 320 episode so you can update ")
-    parser.add_argument("--UpdateParam",type=int,default=40,
+    parser.add_argument("--UpdateParam",type=int,default=10,
         help="update parameter every UpdateParam step")
     parser.add_argument(
         "--ScaleReward", type=float, default=1.0, help="scale up Reward")
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--Log", type=int, default=320, help="record every log episodes")
     parser.add_argument(
-        "--capacity", type=int, default=5e5, help="capacity")
+        "--capacity", type=int, default=2e5, help="capacity")
     opt = parser.parse_args()
 
     #initialize
@@ -187,12 +187,11 @@ if __name__ == "__main__":
             temp = 0
             action_striker_distr, action_goalie_distr = Maddpg_object.select_action_train(
                 pre_sta_s, pre_sta_g)
-            action_striker = torch.argmax(
-                F.gumbel_softmax(action_striker_distr, -1),
-                1).detach().numpy()
-            action_goalie = torch.argmax(
-                F.gumbel_softmax(action_goalie_distr, -1)[:, :5],
-                1).detach().numpy()
+            action_striker_distr=F.gumbel_softmax(action_striker_distr, -1)
+            action_goalie_distr=F.gumbel_softmax(action_goalie_distr, -1)
+
+            action_striker = torch.argmax(action_striker_distr,1).detach().numpy()
+            action_goalie = torch.argmax(action_goalie_distr[:, :5],1).detach().numpy()
 
             action_goalie[mask_goalie] = 0
             action_striker[mask_striker] = 0
@@ -212,6 +211,30 @@ if __name__ == "__main__":
                 if i is []:
                     break
                 if i in np.argwhere(mask_striker == False):
+                    done[int(np.floor(i / 2))] = True
+
+            for i in np.argwhere(done == False):
+                if i is []:
+                    break
+                for j in i:
+                    reward_s[j * 2:j * 2 + 1] += pre_reward_s[j * 2:j * 2 + 1]
+                    reward_g[j * 2:j * 2 + 1] += pre_reward_g[j * 2:j * 2 + 1]
+
+            for i in np.argwhere(cur_done[0] == True):
+                if i is []:
+                    break
+                if i in np.argwhere(mask_striker == False):
+                    done[int(np.floor(i / 2))] = False
+
+            Buffer.update_transition(pre_sta_s, pre_sta_g, action_striker,
+                                     action_goalie, action_striker_distr,
+                                     action_goalie_distr, reward_s, reward_g,
+                                     done, state_striker, state_goalie)
+                   
+            for i in np.argwhere(cur_done[0] == True):
+                if i is []:
+                    break
+                if i in np.argwhere(mask_striker == False):
                     mask_striker[i] = True
                     done[int(np.floor(i / 2))] = True
 
@@ -221,17 +244,6 @@ if __name__ == "__main__":
                 if i in np.argwhere(mask_goalie == False):
                     mask_goalie[i] = True
 
-            for i in np.argwhere(done == False):
-                if i is []:
-                    break
-                for j in i:
-                    reward_s[j * 2:j * 2 + 1] += pre_reward_s[j * 2:j * 2 + 1]
-                    reward_g[j * 2:j * 2 + 1] += pre_reward_g[j * 2:j * 2 + 1]
-
-            Buffer.update_transition(pre_sta_s, pre_sta_g, action_striker,
-                                     action_goalie, action_striker_distr,
-                                     action_goalie_distr, reward_s, reward_g,
-                                     done, state_striker, state_goalie)
             Buffer.clear_memory()
             time_step += 1
             if time_step % 1000 == 0:
@@ -243,6 +255,9 @@ if __name__ == "__main__":
                 if (time_step % opt.UpdateParam==0):
                     seed = time_step
                     Maddpg_object.update_policy(Buffer,time_step,writer,seed)
+                    seed = time_step*2
+                    Maddpg_object.update_policy(Buffer,time_step,writer,seed)
+
 
             Buffer.update_rewards(done)
 

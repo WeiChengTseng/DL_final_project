@@ -74,11 +74,11 @@ class ReplayBuffer:
     def clear_memory(self):
         if len(self.actions[0]) > self.capacity:
             for i in range(4):
-                del self.actions[i][:-capacity]
-                del self.states[i][:-capacity]
-                del self.probs[i][:-capacity]
-                del self.rewards[i][:-capacity]
-                del self.next_states[i][:-capacity]
+                del self.actions[i][:-40960]
+                del self.states[i][:-40960]
+                del self.probs[i][:-40960]
+                del self.rewards[i][:-40960]
+                del self.next_states[i][:-40960]
         return
     
     
