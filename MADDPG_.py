@@ -15,6 +15,11 @@ def soft_update(target, source, t):
         target_param.data.copy_(
             (1 - t) * target_param.data + t * source_param.data)  
 
+def hard_update(target, source):
+    for target_param, source_param in zip(target.parameters(),
+                                          source.parameters()):
+        target_param.data.copy_(source_param.data)
+
 class Maddpg:
     def __init__(self, n_striker = 2,n_goalie = 2, g_dim_act = 5,use_cuda = True,lr = 0.0001,
                 dim_obs = 112, s_dim_act = 7, batchSize_d2 = 512, GAMMA = 0.99, scale_reward = 1., 
@@ -34,7 +39,7 @@ class Maddpg:
         self.g_dim_act =g_dim_act
         self.s_dim_act =s_dim_act
         self.lambda_scale = lambda_scale
-        self.update_target = 20
+        self.update_target = 2
         self.update_timestep = update_timestep
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and use_cuda else "cpu")  
@@ -58,11 +63,11 @@ class Maddpg:
 
         self.s_critic  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_striker)]
         self.s_critic_optimizer = [Adam(x.parameters(),
-                                        lr=lr) for x in self.s_critic]
+                                        lr=lr*3) for x in self.s_critic]
 
         self.g_critic  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_goalie)]
         self.g_critic_optimizer = [Adam(x.parameters(),
-                                        lr=lr) for x in self.g_critic]
+                                        lr=lr*3) for x in self.g_critic]
 
         self.s_critic_target  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_striker)]
         self.g_critic_target  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_goalie)]
@@ -146,6 +151,25 @@ class Maddpg:
             ###################################################
             # update critic
             self.s_critic_optimizer[agent_index].zero_grad()
+
+            for i in range(3):
+                hard_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i])
+                self.s_actor_other_optimizer[agent_index][i].zero_grad()
+                probs_stack= torch.stack(probs[i+1]).detach()
+                output = torch.zeros((self.batchSize,3,7))
+                output[:,0]=self.s_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
+                output[:,1]=self.s_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
+                output[:,2]=self.s_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
+                dist_1 = Categorical(logits=output[:,i])
+                dist_1_entropy = dist_1.entropy()
+                criterion = torch.nn.KLDivLoss(reduction="sum")
+                loss_entropy_1 = criterion(output[:,i],probs_stack)-self.lambda_scale*dist_1_entropy
+                loss_entropy_1 =loss_entropy_1.mean()
+                writer.add_scalars("s_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
+                loss_entropy_1.backward(retain_graph=True)
+                self.s_actor_other_optimizer[agent_index][i].step()
+                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
+                    soft_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i], self.tau)
         
             output_itself = self.s_actor_target[agent_index](torch.from_numpy(np.stack(next_states[0],axis=0)).float())
             output = torch.zeros((output_itself.size(0),3,7))
@@ -155,9 +179,15 @@ class Maddpg:
             critic_actions = torch.stack((output_itself.detach(),output[:,0].detach(),output[:,1].detach(),output[:,2].detach()),dim= 1).float().reshape(self.batchSize, -1)
             next_states_stack = torch.from_numpy(np.stack(next_states,axis=1)).float().reshape(self.batchSize, -1)
             target_Q_p=self.s_critic_target[agent_index](next_states_stack,critic_actions)
-            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(1024, -1).float()
-            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(1024, -1).float()
-            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(1024, -1).float()
+            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(self.batchSize, -1).float()
+            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
+            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
+            # print(torch.stack(probs[0]).size())
+            # print(torch.stack(probs[1]).size())
+            # print(torch.stack(probs[2]).size())
+            # print(torch.stack(probs[3]).size())
+            # print(probs_stack.size())
+            # print(states_stack.size())
             s_current_Q = self.s_critic[agent_index](states_stack,probs_stack)
             s_target_Q = target_Q_p.detach() * self.Gamma + torch.from_numpy(np.stack(rewards[0],axis=0) * self.scale_reward).unsqueeze_(-1).float()
 
@@ -167,24 +197,7 @@ class Maddpg:
             ###################################################
             # update inferring policy of other agents
             # need to fix
-            for i in range(3):
-                self.s_actor_other_optimizer[agent_index][i].zero_grad()
-                input_index=actions[i+1]
-                output = torch.zeros((output_itself.size(0),3,7))
-                output[:,0]=self.s_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
-                output[:,1]=self.s_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
-                output[:,2]=self.s_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
-                dist_1 = Categorical(output[:,i])
-                dist_1_entropy = dist_1.entropy()
-                criterion = torch.nn.NLLLoss(reduction="sum")
-                loss_entropy_1 = criterion(output[:,i], torch.tensor(input_index))+self.lambda_scale*dist_1_entropy
-                loss_entropy_1 =loss_entropy_1.mean()
-                writer.add_scalars("s_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
-
-                loss_entropy_1.backward(retain_graph=True)
-                self.s_actor_other_optimizer[agent_index][i].step()
-                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
-                    soft_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i], self.tau)
+            
             ###################################################
 
             s_critic_loss_Q.backward(retain_graph=True)
@@ -221,7 +234,27 @@ class Maddpg:
 
             ###################################################
             # update critic
-            self.g_critic_optimizer[agent_index].zero_grad()
+            
+            
+            for i in range(3):
+                hard_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i])
+                self.g_actor_other_optimizer[agent_index][i].zero_grad()
+                output = torch.zeros((self.batchSize,3,7))
+                probs_stack= torch.stack(probs[i+1]).detach()
+                output[:,0]=self.g_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
+                output[:,1]=self.g_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
+                output[:,2]=self.g_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
+                dist_1 = Categorical(logits=output[:,i])
+                dist_1_entropy = dist_1.entropy()
+                criterion = torch.nn.KLDivLoss(reduction="sum")
+                loss_entropy_1 = criterion(output[:,i], probs_stack)-self.lambda_scale*dist_1_entropy
+                loss_entropy_1 =loss_entropy_1.mean()
+                writer.add_scalars("g_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
+
+                loss_entropy_1.backward(retain_graph=True)
+                self.g_actor_other_optimizer[agent_index][i].step() 
+                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
+                    soft_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i], self.tau)
 
             output_itself = self.g_actor_target[agent_index](torch.from_numpy(np.stack(next_states[0],axis=0)).float())
             output = torch.zeros((output_itself.size(0),3,7))
@@ -232,9 +265,9 @@ class Maddpg:
             critic_actions = torch.stack((output_itself.detach(),output[:,0].detach(),output[:,1].detach(),output[:,2].detach()),dim= 1).float().reshape(self.batchSize, -1)
             next_states_stack = torch.from_numpy(np.stack(next_states,axis=1)).float().reshape(self.batchSize, -1)
             target_Q_p=self.g_critic_target[agent_index](next_states_stack,critic_actions)
-            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(1024, -1).float()
-            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(1024, -1).float()
-            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(1024, -1).float()
+            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(self.batchSize, -1).float()
+            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
+            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
             
             g_current_Q = self.g_critic[agent_index](states_stack,probs_stack)
             g_target_Q = target_Q_p.detach() * self.Gamma + torch.from_numpy(np.stack(rewards[0],axis=0) * self.scale_reward).unsqueeze_(-1).float()
@@ -244,24 +277,7 @@ class Maddpg:
             ###################################################
             # update inferring policy of other agents
             # need to fix
-            for i in range(3):
-                self.g_actor_other_optimizer[agent_index][i].zero_grad()
-                input_index=actions[i+1]
-                output = torch.zeros((output_itself.size(0),3,7))
-                output[:,0]=self.g_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
-                output[:,1]=self.g_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
-                output[:,2]=self.g_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
-                dist_1 = Categorical(output[:,i])
-                dist_1_entropy = dist_1.entropy()
-                criterion = torch.nn.NLLLoss(reduction="sum")
-                loss_entropy_1 = criterion(output[:,i], torch.tensor(input_index))+self.lambda_scale*dist_1_entropy
-                loss_entropy_1 =loss_entropy_1.mean()
-                writer.add_scalars("g_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
-
-                loss_entropy_1.backward(retain_graph=True)
-                self.g_actor_other_optimizer[agent_index][i].step() 
-                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
-                    soft_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i], self.tau)
+            
             
             ###################################################
 
@@ -274,7 +290,6 @@ class Maddpg:
             self.g_actor_optimizer[agent_index].zero_grad()
             g_actor_loss = -self.g_critic[agent_index](states_stack,  probs_stack_update)
             g_actor_loss =g_actor_loss.mean()
-
             g_actor_loss.backward(retain_graph=True)
             self.g_actor_optimizer[agent_index].step()
             ###################################################
