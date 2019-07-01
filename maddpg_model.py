@@ -14,11 +14,12 @@ class Critic(nn.Module):
         self.FC = nn.Linear(obs_dim, 128)
         self.sq = nn.Sequential(
             nn.Linear(128+act_dim , 64),
-            nn.ReLU(inplace= True),
+            nn.ReLU(),
             nn.Linear(64,1),
         )
     def forward(self, obs, acts):
         result = F.relu(self.FC(obs))
+        
         combined = torch.cat([result, acts], 1)
         return self.sq(combined)
 
@@ -27,35 +28,38 @@ class Goalie(nn.Module):
         super(Goalie, self).__init__()
         self.sq = nn.Sequential(
             nn.Linear(dim_observation,128),
-            nn.ReLU(inplace= True),
+            nn.ReLU(),
             nn.Linear(128,64),
-            nn.ReLU(inplace= True),
+            nn.ReLU(),
             nn.Linear(64,dim_action),
+            nn.LogSoftmax(-1),
         )
 
     # action output between -2 and 2
     def forward(self, obs):
         output = torch.zeros((2,))
-        buf = F.gumbel_softmax(self.sq(obs),-1)
+        buf = self.sq(obs)
         buf = buf.squeeze()
         new=torch.zeros((buf.size(0),2))
-        output = torch.cat((buf,new),dim=1)
-        # print(output.size())
+        new.fill_(1e-12)
+        output = torch.cat((buf,new),dim=-1)
         return output
+
+
 
 class Striker(nn.Module):
     def __init__(self, dim_observation = 112, dim_action = 7):
         super(Striker, self).__init__()
         self.sq = nn.Sequential(
             nn.Linear(dim_observation,128),
-            nn.ReLU(inplace= True),
+            nn.ReLU(),
             nn.Linear(128,64),
-            nn.ReLU(inplace= True),
+            nn.ReLU(),
             nn.Linear(64,dim_action),
-            # nn.Softmax(-1),
+            nn.LogSoftmax(-1)
         )
 
     # action output between -2 and 2
     def forward(self, obs):
-        return F.gumbel_softmax(self.sq(obs),1)
+        return self.sq(obs)
 

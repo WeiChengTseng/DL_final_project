@@ -29,14 +29,14 @@ HIDDENDIMGOALIE = 64
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--Lr", type=float, default=1e-4, help="Learning Rate")
+    parser.add_argument("--Lr", type=float, default=5e-5, help="Learning Rate")
     parser.add_argument(
         "--Ga", type=float, default=0.99, help="Discount coefficient")
     parser.add_argument("--Bz", type=int, default=512, help="Batch Size")
     parser.add_argument("--Tau", type=float, default=0.01, help="Tau")
     parser.add_argument("--UpdateEpisode",type=int,default=100,
         help="At least have 320 episode so you can update ")
-    parser.add_argument("--UpdateParam",type=int,default=10,
+    parser.add_argument("--UpdateParam",type=int,default=20,
         help="update parameter every UpdateParam step")
     parser.add_argument(
         "--ScaleReward", type=float, default=1.0, help="scale up Reward")
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--Log", type=int, default=320, help="record every log episodes")
     parser.add_argument(
-        "--capacity", type=int, default=2e5, help="capacity")
+        "--capacity", type=int, default=1e5, help="capacity")
     opt = parser.parse_args()
 
     #initialize
@@ -65,12 +65,12 @@ if __name__ == "__main__":
         update_timestep=opt.UpdateParam,
         lambda_scale=opt.LambdaScaler)
       
-    Buffer = ReplayBuffer(capacity=opt.capacity)
+    Buffer = ReplayBuffer(capacity=opt.capacity,gamma=opt.Ga)
     folder = None
     mask_striker = np.zeros(16, dtype=bool)
     mask_goalie = np.zeros(16, dtype=bool)
     mask = np.zeros(8, dtype=bool)
-    test_loop = 2
+    test_loop = 4
     test_str_reward = np.zeros(16)
 
     #record episode rewards
@@ -180,6 +180,7 @@ if __name__ == "__main__":
                             print("test end at :", st, file=f_h)
                             print("test end at :", st)
                             f_h.close()
+                            pre_sta_s, pre_sta_g = Env.reset(order)
                         pre_sta_s, pre_sta_g = Env.reset(order)
                         break
         
@@ -187,11 +188,14 @@ if __name__ == "__main__":
             temp = 0
             action_striker_distr, action_goalie_distr = Maddpg_object.select_action_train(
                 pre_sta_s, pre_sta_g)
-            action_striker_distr=F.gumbel_softmax(action_striker_distr, -1)
-            action_goalie_distr=F.gumbel_softmax(action_goalie_distr, -1)
+            # action_striker_distr=F.gumbel_softmax(action_striker_distr, -1)
+            # action_goalie_distr=F.gumbel_softmax(action_goalie_distr, -1)
+
+            # action_striker = torch.argmax(action_striker_distr,1).detach().numpy()
+            # action_goalie = torch.argmax(action_goalie_distr[:, :5],1).detach().numpy()
 
             action_striker = torch.argmax(action_striker_distr,1).detach().numpy()
-            action_goalie = torch.argmax(action_goalie_distr[:, :5],1).detach().numpy()
+            action_goalie = torch.argmax(action_goalie_distr,1).detach().numpy()
 
             action_goalie[mask_goalie] = 0
             action_striker[mask_striker] = 0
@@ -213,13 +217,6 @@ if __name__ == "__main__":
                 if i in np.argwhere(mask_striker == False):
                     done[int(np.floor(i / 2))] = True
 
-            for i in np.argwhere(done == False):
-                if i is []:
-                    break
-                for j in i:
-                    reward_s[j * 2:j * 2 + 1] += pre_reward_s[j * 2:j * 2 + 1]
-                    reward_g[j * 2:j * 2 + 1] += pre_reward_g[j * 2:j * 2 + 1]
-
             for i in np.argwhere(cur_done[0] == True):
                 if i is []:
                     break
@@ -237,7 +234,7 @@ if __name__ == "__main__":
                 if i in np.argwhere(mask_striker == False):
                     mask_striker[i] = True
                     done[int(np.floor(i / 2))] = True
-
+                    
             for i in np.argwhere(cur_done[1] == True):
                 if i is []:
                     break
@@ -257,7 +254,6 @@ if __name__ == "__main__":
                     Maddpg_object.update_policy(Buffer,time_step,writer,seed)
                     seed = time_step*2
                     Maddpg_object.update_policy(Buffer,time_step,writer,seed)
-
 
             Buffer.update_rewards(done)
 
