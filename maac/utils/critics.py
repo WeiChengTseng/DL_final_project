@@ -77,7 +77,7 @@ class AttentionCritic(nn.Module):
             self.selector_extractors.append(
                 nn.Linear(hidden_dim, attend_dim, bias=False))
             self.value_extractors.append(
-                nn.Sequential(nn.Linear(hidden_dim, attend_dim),
+                nn.Sequential(nn.Linear(hidden_dim, attend_diㄑm),
                               nn.LeakyReLU()))
 
         self.shared_modules = [

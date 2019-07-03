@@ -537,6 +537,66 @@ def eval_maacdoubleac_compete(model_path,
     return
 
 
+def eval_maacdoubleppo_compete(model_path,
+                              strikers,
+                              goalies,
+                              env,
+                              order='team',
+                              eval_epsoid=200):
+    maac = AttentionSACDouble.init_from_save(model_path)
+    # obs_striker, obs_goalie = env.reset(order)
+    obs_striker, obs_goalie, obs_striker2, obs_goalie2 = parse_double(
+        env.reset(order))
+
+    actions_strikers = [None, None]
+    actions_goalies = [None, None]
+    records = [0, 0, 0]
+
+    epsoid = 0
+    while epsoid < eval_epsoid:
+        obs_striker = (torch.from_numpy(obs_striker).float()).to(device)
+        obs_goalie = (torch.from_numpy(obs_goalie).float()).to(device)
+        obs_striker2 = (torch.from_numpy(obs_striker2).float()).to(device)
+        obs_goalie2 = (torch.from_numpy(obs_goalie2).float()).to(device)
+
+        action_maac = maac.step(
+            (obs_striker, obs_goalie, obs_striker2, obs_goalie2), explore=True)
+
+        # print(action_maac)
+
+        actions_strikers[0] = torch.argmax(action_maac[0], dim=-1)
+        actions_goalies[0] = torch.argmax(action_maac[1], dim=-1)
+        # print(actions_strikers[0])
+
+        # policy_strikers, _ = strikers(obs_striker2[:])
+        # policy_goalies, _ = goalies(obs_goalie2[:])
+
+        # probs_striker = F.softmax(policy_strikers, dim=-1)
+        # probs_goalie = F.softmax(policy_goalies, dim=-1)
+
+        actions_strikers[1] =  strikers.act(obs_striker2).flatten()
+        actions_goalies[1] = goalies.act(obs_goalie2).flatten()
+
+        # print(actions_strikers)
+
+        actions_striker = torch.cat(actions_strikers, 0)
+        actions_goalie = torch.cat(actions_goalies, 0)
+
+        obs, rewards, dones, _ = env.step(actions_striker, actions_goalie,
+                                          order)
+        obs_striker, obs_goalie, obs_striker2, obs_goalie2 = parse_double(obs)
+
+        for i in np.argwhere(dones[0]).flatten():
+            epsoid += 1
+            if rewards[1][i] < 0:
+                records[0] += 1
+            elif rewards[0][i] < 0:
+                records[1] += 1
+            else:
+                records[2] += 1
+    return
+
+
 if __name__ == '__main__':
     env_path = './env/macos/SoccerTwosBeta.app'
     env = SocTwoEnv(env_path, worker_id=0, train_mode=False, render=True)
@@ -555,6 +615,7 @@ if __name__ == '__main__':
     # maac_path = './maac/server/model.pt'
     # maac_path = './maac/dup_policy/model.pt'
     maacdouble_path = './maac_double/server/model.pt'
+    maacac_path = './maac_ac/server/model.pt'
     # maac_path = './maac/cedl/model.pt'
     # maac_path = './maac/cedl_h2/model.pt'
     # maac_path = './maac/models/maac/run10/model.pt'
@@ -564,16 +625,16 @@ if __name__ == '__main__':
         # policy_striker, policy_goalie = A2C(7).to(device), A2C(5).to(device)
         policy_striker_large, policy_goalie_large, = A2CLarge(7).to(
             device), A2CLarge(5).to(device)
-        # policy_striker_large2, policy_goalie_large2, = A2CLarge(7).to(
-        #     device), A2CLarge(5).to(device)
+        policy_striker_large2, policy_goalie_large2, = A2CLarge(7).to(
+            device), A2CLarge(5).to(device)
 
         ckpt_large = torch.load(net_path_large, map_location=device)
         policy_striker_large.load_state_dict(ckpt_large['striker_a2c'])
         policy_goalie_large.load_state_dict(ckpt_large['goalie_a2c'])
 
-        # ckpt_large2 = torch.load(net_path_large2, map_location=device)
-        # policy_striker_large2.load_state_dict(ckpt_large2['striker_a2c'])
-        # policy_goalie_large2.load_state_dict(ckpt_large2['goalie_a2c'])
+        ckpt_large2 = torch.load(net_path_large2, map_location=device)
+        policy_striker_large2.load_state_dict(ckpt_large2['striker_a2c'])
+        policy_goalie_large2.load_state_dict(ckpt_large2['goalie_a2c'])
 
         # ckpt = torch.load(net_path, map_location=device)
         # policy_striker.load_state_dict(ckpt['striker_a2c'])
@@ -610,8 +671,8 @@ if __name__ == '__main__':
 
         # eval_self_complete(policy_striker_large, policy_striker_large, env,
         #                    device, 'team')
-        # eval_self_complete(policy_striker_large2, policy_striker_large2, env,
-        #                    device, 'team')
+        eval_self_complete(policy_striker_large2, policy_striker_large2, env,
+                           device, 'team')
 
         # eval_agents_compete([policy_striker_large, policy_striker],
         #                     [policy_goalie_large, policy_goalie],
@@ -636,6 +697,8 @@ if __name__ == '__main__':
         # eval_maac_with_random(maac_path, env)
         # eval_maac_self_compete(maac_path, env)
         # eval_maacac_compete(maac_path, policy_striker_large,policy_goalie_large,env)
-        eval_maacdoubleac_compete(maacdouble_path, policy_striker_large,
-                                  policy_goalie_large, env)
+        # eval_maacdoubleac_compete(maacdouble_path, policy_striker_large,
+        #                           policy_goalie_large, env)
+        # eval_maacdoubleppo_compete(maacdouble_path, ppo_striker,
+        #                           ppo_goalie, env)
     pass
