@@ -34,12 +34,15 @@ action_dim_goalie = 5
 n_latent_var_goalie = 64  # number of variables in hidden layer
 #############################################
 
+
 max_episodes = 10000  # max training episodes
 max_timesteps = 5000  # max timesteps in one episode
 
 log_interval = 10  # print avg reward in the interval
 update_timestep = 400  # update policy every n timesteps 2000
-lr = 5e-4
+
+lr = 1e-3
+
 gamma = 0.95  # discount factor
 scale_reward = 1
 random_seed = None
@@ -84,7 +87,8 @@ running_reward = 0
 avg_length = 0
 timestep = 0
 
-capacity = int(3e4)
+capacity = int(5e4)
+
 
 
 def main():
@@ -120,8 +124,10 @@ def main():
     trans = 0
     test_str_reward = np.zeros(16)
     win_prob = []
+
     lose_prob = []
     draw_prob = []
+
     order = 'field'
     states = env.reset(order)
     Logsoftmax = nn.LogSoftmax(-1)
@@ -186,8 +192,10 @@ def main():
                         red = len(np.argwhere(win[[0,2,4,6,8,10,12,14]] == True))
                         lose =len(np.argwhere(lose[[0,2,4,6,8,10,12,14]] == True))
                         win_prob += [((red / 8)) * 100]
+
                         lose_prob += [(lose / 8 )*100]
                         draw_prob += [(1-(red / 8+lose/ 8))*100]
+
                         mask_striker[:] = False
                         mask_goalie[:] = False
                         iter_test += 1
@@ -200,14 +208,17 @@ def main():
                                   iter_test)
                         if iter_test == test_loop:
                             result = np.mean(np.array(win_prob))
+
                             draw_r = np.mean(np.array(draw_prob))
                             lose_r = np.mean(np.array((lose_prob)))
+
                             f = open(outf + "/result.txt", "a")
                             print(
                                 "Now time: ", datetime.datetime.now(), file=f)
                             print(
                                 'episode: {} stocastic result: '.format(
                                     episode),
+
                                 result," draw: ",draw_r, " lose: ",lose_r,
                                 file=f)
                             print(
@@ -246,6 +257,7 @@ def main():
         if trans % 100 ==0:
             print("episode: ", episode)
             print("memory_length: ", len(memory))
+
 
 
         action_striker_distr, action_goalie_distr = Maddpg_.select_action(states[0], states[1])

@@ -11,13 +11,11 @@ class Critic(nn.Module):
         self.dim_action = dim_action
         obs_dim = dim_observation * n_agent
         act_dim = self.dim_action * n_agent
-        self.FC = nn.Linear(obs_dim, 512)
+        self.FC = nn.Linear(obs_dim, 128)
         self.sq = nn.Sequential(
-            nn.Linear(512+act_dim , 256),
+            nn.Linear(128+act_dim , 64),
             nn.ReLU(inplace= True),
-            nn.Linear(256,150),
-            nn.ReLU(inplace= True),
-            nn.Linear(150,1)
+            nn.Linear(64,1),
         )
     def forward(self, obs, acts):
         result = F.relu(self.FC(obs))
@@ -28,40 +26,36 @@ class Goalie(nn.Module):
     def __init__(self, dim_observation = 112, dim_action = 5):
         super(Goalie, self).__init__()
         self.sq = nn.Sequential(
-            nn.Linear(dim_observation,200),
+            nn.Linear(dim_observation,128),
             nn.ReLU(inplace= True),
-            nn.Linear(200,50),
+            nn.Linear(128,64),
             nn.ReLU(inplace= True),
-            nn.Linear(50,dim_action),
-            nn.Tanh()
+            nn.Linear(64,dim_action),
         )
 
     # action output between -2 and 2
     def forward(self, obs):
-        
         output = torch.zeros((2,))
-        
-        buf = self.sq(obs)
+        buf = F.gumbel_softmax(self.sq(obs),-1)
         buf = buf.squeeze()
-        # print(buf.shape)
-        # print(output.shape)
-        output = output.new_full((buf.size(0) , 7),-5)
-        output[:,:5] = buf
+        new=torch.zeros((buf.size(0),2))
+        output = torch.cat((buf,new),dim=1)
+        # print(output.size())
         return output
 
 class Striker(nn.Module):
     def __init__(self, dim_observation = 112, dim_action = 7):
         super(Striker, self).__init__()
         self.sq = nn.Sequential(
-            nn.Linear(dim_observation,200),
+            nn.Linear(dim_observation,128),
             nn.ReLU(inplace= True),
-            nn.Linear(200,50),
+            nn.Linear(128,64),
             nn.ReLU(inplace= True),
-            nn.Linear(50,dim_action),
-            nn.Tanh()
+            nn.Linear(64,dim_action),
+            # nn.Softmax(-1),
         )
 
     # action output between -2 and 2
     def forward(self, obs):
-        return self.sq(obs)
+        return F.gumbel_softmax(self.sq(obs),1)
 
