@@ -119,8 +119,8 @@ class Maddpg:
         if team == "red":
             # s_action=self.s_actor[0](torch.from_numpy(strikers[even]).float().cuda()).detach()
             # g_action=self.g_actor[0](torch.from_numpy(goalies[even]).float().cuda())
-            s_act[even]=torch.argmax(self.s_actor[0](torch.from_numpy(strikers[even]).float().cuda()).detach(),1).detach().numpy()
-            g_act[even]=torch.argmax(self.g_actor[0](torch.from_numpy(goalies[even]).float().cuda()).detach(),1).detach().numpy()
+            s_act[even]=torch.argmax(self.s_actor[0](torch.from_numpy(strikers[even]).float().cuda()).detach(),1).detach().cpu().numpy()
+            g_act[even]=torch.argmax(self.g_actor[0](torch.from_numpy(goalies[even]).float().cuda()).detach(),1).detach().cpu().numpy()
             s_act[odd]= np.random.randint(7, size=8)
             g_act[odd]= np.random.randint(5, size=8)
         else:
@@ -129,10 +129,10 @@ class Maddpg:
 
             # g_act[odd] = Categorical(probs=g_action).sample()
             # s_act[odd] = Categorical(probs=s_action).sample()
-            # s_act[odd]=torch.argmax(F.gumbel_softmax(self.s_actor[0](torch.from_numpy(strikers[odd]).float().cuda()).detach(),dim=-1),1).detach().numpy()
-            # g_act[odd]=torch.argmax(F.gumbel_softmax(self.g_actor[0](torch.from_numpy(goalies[odd]).float().cuda()).detach(),dim=-1),1).detach().numpy()
-            s_act[odd]=torch.argmax(self.s_actor[1](torch.from_numpy(strikers[odd]).float().cuda()).detach(),1).detach().numpy()
-            g_act[odd]=torch.argmax(self.g_actor[1](torch.from_numpy(goalies[odd]).float().cuda()).detach(),1).detach().numpy()
+            # s_act[odd]=torch.argmax(F.gumbel_softmax(self.s_actor[0](torch.from_numpy(strikers[odd]).float().cuda()).detach(),dim=-1),1).detach().cpu().numpy()
+            # g_act[odd]=torch.argmax(F.gumbel_softmax(self.g_actor[0](torch.from_numpy(goalies[odd]).float().cuda()).detach(),dim=-1),1).detach().cpu().numpy()
+            s_act[odd]=torch.argmax(self.s_actor[1](torch.from_numpy(strikers[odd]).float().cuda()).detach(),1).detach().cpu().numpy()
+            g_act[odd]=torch.argmax(self.g_actor[1](torch.from_numpy(goalies[odd]).float().cuda()).detach(),1).detach().cpu().numpy()
             s_act[even]= np.random.randint(7, size=8)
             g_act[even]= np.random.randint(5, size=8)
         
