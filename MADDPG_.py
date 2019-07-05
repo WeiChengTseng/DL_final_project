@@ -9,6 +9,7 @@ from torch.optim import Adam
 from torch.distributions import Categorical
 import torch.nn.functional as F
 
+
 def soft_update(target, source, t):
     for target_param, source_param in zip(target.parameters(),
                                           source.parameters()):
@@ -39,7 +40,7 @@ class Maddpg:
         self.g_dim_act =g_dim_act
         self.s_dim_act =s_dim_act
         self.lambda_scale = lambda_scale
-        self.update_target = 2
+        self.update_target = 5
         self.update_timestep = update_timestep
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and use_cuda else "cpu")  
@@ -61,16 +62,16 @@ class Maddpg:
         self.s_actor_target = [ Striker(self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_striker)]
         self.g_actor_target = [ Goalie(self.dim_obs, self.g_dim_act).to(self.device)  for i in range(self.n_goalie)]
 
-        self.s_critic  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_striker)]
+        self.s_critic  = [ Critic(2,2, self.dim_obs, self.s_dim_act,self.g_dim_act).to(self.device) for i in range(self.n_striker)]
         self.s_critic_optimizer = [Adam(x.parameters(),
                                         lr=lr*3) for x in self.s_critic]
 
-        self.g_critic  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_goalie)]
+        self.g_critic  = [ Critic(2,2, self.dim_obs, self.s_dim_act,self.g_dim_act).to(self.device) for i in range(self.n_goalie)]
         self.g_critic_optimizer = [Adam(x.parameters(),
                                         lr=lr*3) for x in self.g_critic]
 
-        self.s_critic_target  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_striker)]
-        self.g_critic_target  = [ Critic(4, self.dim_obs, self.s_dim_act).to(self.device) for i in range(self.n_goalie)]
+        self.s_critic_target  = [ Critic(2,2, self.dim_obs, self.s_dim_act,self.g_dim_act).to(self.device) for i in range(self.n_striker)]
+        self.g_critic_target  = [ Critic(2,2, self.dim_obs, self.s_dim_act,self.g_dim_act).to(self.device) for i in range(self.n_goalie)]
         
         self.steps_done = 0
         self.episode_done = 0
@@ -100,13 +101,13 @@ class Maddpg:
     
     def select_action_train(self,strikers,goalies):
         s_act_distr = torch.zeros([16,7])
-        g_act_distr = torch.zeros([16,7])
-        odd = [0,2,4,6,8,10,12,14]
-        even = [1,3,5,7,9,11,13,15]
-        s_act_distr[odd]=(self.s_actor[0](torch.from_numpy(strikers[odd]).float())).clone()
-        g_act_distr[odd]=(self.g_actor[0](torch.from_numpy(goalies[odd]).float())).clone()
-        s_act_distr[even]=(self.s_actor[1](torch.from_numpy(strikers[even]).float())).clone()
-        g_act_distr[even]=(self.g_actor[1](torch.from_numpy(goalies[even]).float())).clone()
+        g_act_distr = torch.zeros([16,5])
+        even = [0,2,4,6,8,10,12,14]
+        odd = [1,3,5,7,9,11,13,15]
+        s_act_distr[even]=(self.s_actor[0](torch.from_numpy(strikers[even]).float())).clone()
+        g_act_distr[even]=(self.g_actor[0](torch.from_numpy(goalies[even]).float())).clone()
+        s_act_distr[odd]=(self.s_actor[1](torch.from_numpy(strikers[odd]).float())).clone()
+        g_act_distr[odd]=(self.g_actor[1](torch.from_numpy(goalies[odd]).float())).clone()
         
         return s_act_distr, g_act_distr
     
@@ -116,13 +117,22 @@ class Maddpg:
         even = [0,2,4,6,8,10,12,14]
         odd = [1,3,5,7,9,11,13,15]
         if team == "red":
-            s_act[even]=torch.argmax(F.gumbel_softmax(self.s_actor[1](torch.from_numpy(strikers[even]).float()),-1),1).detach().numpy()
-            g_act[even]=torch.argmax(F.gumbel_softmax(self.g_actor[1](torch.from_numpy(goalies[even]).float()),-1),1).detach().numpy()
+            # s_action=self.s_actor[0](torch.from_numpy(strikers[even]).float()).detach()
+            # g_action=self.g_actor[0](torch.from_numpy(goalies[even]).float())
+            s_act[even]=torch.argmax(self.s_actor[0](torch.from_numpy(strikers[even]).float()).detach(),1).detach().numpy()
+            g_act[even]=torch.argmax(self.g_actor[0](torch.from_numpy(goalies[even]).float()).detach(),1).detach().numpy()
             s_act[odd]= np.random.randint(7, size=8)
             g_act[odd]= np.random.randint(5, size=8)
         else:
-            s_act[odd]=torch.argmax(F.gumbel_softmax(self.s_actor[0](torch.from_numpy(strikers[odd]).float()),-1),1).detach().numpy()
-            g_act[odd]=torch.argmax(F.gumbel_softmax(self.g_actor[0](torch.from_numpy(goalies[odd]).float()),-1),1).detach().numpy()
+            s_action=self.s_actor[0](torch.from_numpy(strikers[odd]).float()).exp().detach()
+            g_action=self.g_actor[0](torch.from_numpy(goalies[odd]).float())
+
+            # g_act[odd] = Categorical(probs=g_action).sample()
+            # s_act[odd] = Categorical(probs=s_action).sample()
+            # s_act[odd]=torch.argmax(F.gumbel_softmax(self.s_actor[0](torch.from_numpy(strikers[odd]).float()).detach(),dim=-1),1).detach().numpy()
+            # g_act[odd]=torch.argmax(F.gumbel_softmax(self.g_actor[0](torch.from_numpy(goalies[odd]).float()).detach(),dim=-1),1).detach().numpy()
+            s_act[odd]=torch.argmax(self.s_actor[1](torch.from_numpy(strikers[odd]).float()).detach(),1).detach().numpy()
+            g_act[odd]=torch.argmax(self.g_actor[1](torch.from_numpy(goalies[odd]).float()).detach(),1).detach().numpy()
             s_act[even]= np.random.randint(7, size=8)
             g_act[even]= np.random.randint(5, size=8)
         
@@ -135,6 +145,9 @@ class Maddpg:
         
         c_loss = []
         a_loss = []
+        o_p =1
+        if seed < 2500:
+            o_p =0
 
         self.steps_done += 1
 
@@ -145,49 +158,41 @@ class Maddpg:
             else:
                 index_order = [1,0,3,2]
 
-            # alert me that action need to be log()
             states, actions, probs, rewards, next_states = memory.sample(index_order,seed,self.batchSize)
             
             ###################################################
             # update critic
-            self.s_critic_optimizer[agent_index].zero_grad()
-
-            for i in range(3):
-                hard_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i])
-                self.s_actor_other_optimizer[agent_index][i].zero_grad()
-                probs_stack= torch.stack(probs[i+1]).detach()
-                output = torch.zeros((self.batchSize,3,7))
-                output[:,0]=self.s_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
-                output[:,1]=self.s_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
-                output[:,2]=self.s_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
-                dist_1 = Categorical(logits=output[:,i])
-                dist_1_entropy = dist_1.entropy()
-                criterion = torch.nn.KLDivLoss(reduction="sum")
-                loss_entropy_1 = criterion(output[:,i],probs_stack)-self.lambda_scale*dist_1_entropy
-                loss_entropy_1 =loss_entropy_1.mean()
-                writer.add_scalars("s_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
-                loss_entropy_1.backward(retain_graph=True)
-                self.s_actor_other_optimizer[agent_index][i].step()
-                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
-                    soft_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i], self.tau)
-        
+            # for i in range(3):
+            #     distr_stack= torch.stack(probs[i+1]).detach()
+            #     output =self.s_actor_other[agent_index][i](torch.from_numpy(np.stack(states[i+1],axis=0)).float()).clone()
+            #     dist_1 = Categorical(probs=output)
+            #     dist_1_entropy = dist_1.entropy()
+            #     self.s_actor_other_optimizer[agent_index][i].zero_grad()
+            #     criterion = torch.nn.KLDivLoss(reduction="sum")
+            #     loss_entropy_1 = criterion(output.log(),distr_stack)+self.lambda_scale*dist_1_entropy
+            #     writer.add_scalars("s_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.mean().item())},step)
+            #     loss_entropy_1.mean().backward()
+            #     self.s_actor_other_optimizer[agent_index][i].step()
+                    
             output_itself = self.s_actor_target[agent_index](torch.from_numpy(np.stack(next_states[0],axis=0)).float())
-            output = torch.zeros((output_itself.size(0),3,7))
-            output[:,0] = self.s_actor_other_target[agent_index][0](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
-            output[:,1] = self.s_actor_other_target[agent_index][1](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
-            output[:,2] = self.s_actor_other_target[agent_index][2](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
-            critic_actions = torch.stack((output_itself.detach(),output[:,0].detach(),output[:,1].detach(),output[:,2].detach()),dim= 1).float().reshape(self.batchSize, -1)
+            if agent_index == 0:
+                output_1 = self.s_actor_target[agent_index+1](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
+                output_2 = self.g_actor_target[agent_index](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
+                output_3 = self.g_actor_target[agent_index+1](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
+            else:
+                output_1 = self.s_actor_target[agent_index-1](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
+                output_2 = self.g_actor_target[agent_index](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
+                output_3 = self.g_actor_target[agent_index-1](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
+
+            critic_actions =torch.cat([output_itself,output_1,output_2,output_3],dim=1)
+            if o_p == 0:
+                print("critic actions size: ",critic_actions.size())
             next_states_stack = torch.from_numpy(np.stack(next_states,axis=1)).float().reshape(self.batchSize, -1)
             target_Q_p=self.s_critic_target[agent_index](next_states_stack,critic_actions)
-            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(self.batchSize, -1).float()
-            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
-            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
-            # print(torch.stack(probs[0]).size())
-            # print(torch.stack(probs[1]).size())
-            # print(torch.stack(probs[2]).size())
-            # print(torch.stack(probs[3]).size())
-            # print(probs_stack.size())
-            # print(states_stack.size())
+            states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(self.batchSize, -1).float().detach()
+            probs_stack= torch.cat([torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach()],dim=1).float().detach()
+            if o_p == 0:
+                print("probs_stack size: ",probs_stack.size())
             s_current_Q = self.s_critic[agent_index](states_stack,probs_stack)
             s_target_Q = target_Q_p.detach() * self.Gamma + torch.from_numpy(np.stack(rewards[0],axis=0) * self.scale_reward).unsqueeze_(-1).float()
 
@@ -199,30 +204,25 @@ class Maddpg:
             # need to fix
             
             ###################################################
-
-            s_critic_loss_Q.backward(retain_graph=True)
+            self.s_critic_optimizer[agent_index].zero_grad()
+            s_critic_loss_Q.backward()
             self.s_critic_optimizer[agent_index].step()
             ###################################################
 
             ###################################################
             # update actor policy
+            output = self.s_actor[agent_index](torch.from_numpy(np.stack(states[0],axis=0)).float()).clone()
+            probs_stack= torch.cat([output,torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach()],dim=1).float()
+            s_actor_loss = -self.s_critic[agent_index](states_stack, probs_stack)
             self.s_actor_optimizer[agent_index].zero_grad()
-            s_actor_loss = -self.s_critic[agent_index](states_stack, probs_stack_update)
             s_actor_loss =s_actor_loss.mean()
-            s_actor_loss.backward(retain_graph=True)
+            s_actor_loss.backward()
             self.s_actor_optimizer[agent_index].step()
             ###################################################
 
             writer.add_scalars('striker_{}'.format(agent_index),{'actor':s_actor_loss},step)
             del states[:], actions[:], probs[:], rewards[:], next_states[:]
             ###################################################
-        # soft update targetNetwork
-        if self.steps_done % self.update_timestep == 0 and self.steps_done > 0:
-            for index in range(self.n_striker):
-                soft_update(self.s_critic_target[index], self.s_critic[index], self.tau)
-                soft_update(self.s_actor_target[index],  self.s_actor[index], self.tau)
-            
-
         for agent_index in range(self.n_goalie):
             if agent_index==0:
                 index_order = [2,3,0,1] #(0, 1 -> striker),
@@ -236,39 +236,37 @@ class Maddpg:
             # update critic
             
             
-            for i in range(3):
-                hard_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i])
-                self.g_actor_other_optimizer[agent_index][i].zero_grad()
-                output = torch.zeros((self.batchSize,3,7))
-                probs_stack= torch.stack(probs[i+1]).detach()
-                output[:,0]=self.g_actor_other[agent_index][0](torch.from_numpy(np.stack(states[1],axis=0)).float()).clone()
-                output[:,1]=self.g_actor_other[agent_index][1](torch.from_numpy(np.stack(states[2],axis=0)).float()).clone()
-                output[:,2]=self.g_actor_other[agent_index][2](torch.from_numpy(np.stack(states[3],axis=0)).float()).clone()
-                dist_1 = Categorical(logits=output[:,i])
-                dist_1_entropy = dist_1.entropy()
-                criterion = torch.nn.KLDivLoss(reduction="sum")
-                loss_entropy_1 = criterion(output[:,i], probs_stack)-self.lambda_scale*dist_1_entropy
-                loss_entropy_1 =loss_entropy_1.mean()
-                writer.add_scalars("g_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.item())},step)
-
-                loss_entropy_1.backward(retain_graph=True)
-                self.g_actor_other_optimizer[agent_index][i].step() 
-                if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
-                    soft_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i], self.tau)
+            # for i in range(3):
+                
+            #     distr_stack= torch.stack(probs[i+1]).detach()
+            #     output =self.g_actor_other[agent_index][i](torch.from_numpy(np.stack(states[i+1],axis=0)).float()).clone()
+            #     dist_1 = Categorical(probs=output)
+            #     dist_1_entropy = dist_1.entropy()
+            #     self.g_actor_other_optimizer[agent_index][i].zero_grad()
+            #     criterion = torch.nn.KLDivLoss(reduction="sum")
+            #     loss_entropy_1 = criterion(output.log(), distr_stack)+self.lambda_scale*dist_1_entropy
+            #     writer.add_scalars("g_actor_other_{}_number_{}".format(agent_index, i),{"loss":(loss_entropy_1.mean().item())},step)
+            #     loss_entropy_1.mean().backward()
+            #     self.g_actor_other_optimizer[agent_index][i].step() 
+                    
 
             output_itself = self.g_actor_target[agent_index](torch.from_numpy(np.stack(next_states[0],axis=0)).float())
-            output = torch.zeros((output_itself.size(0),3,7))
-            output[:,0] = self.g_actor_other_target[agent_index][0](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
-            output[:,1] = self.g_actor_other_target[agent_index][1](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
-            output[:,2] = self.g_actor_other_target[agent_index][2](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
+            if agent_index == 0:
+                output_1 = self.g_actor_target[agent_index+1](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
+                output_2 = self.s_actor_target[agent_index](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
+                output_3 = self.s_actor_target[agent_index+1](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
+            else:
+                output_1 = self.g_actor_target[agent_index-1](torch.from_numpy(np.stack(next_states[1],axis=0)).float()).clone()
+                output_2 = self.s_actor_target[agent_index](torch.from_numpy(np.stack(next_states[2],axis=0)).float()).clone()
+                output_3 = self.s_actor_target[agent_index-1](torch.from_numpy(np.stack(next_states[3],axis=0)).float()).clone()
             
-            critic_actions = torch.stack((output_itself.detach(),output[:,0].detach(),output[:,1].detach(),output[:,2].detach()),dim= 1).float().reshape(self.batchSize, -1)
+            critic_actions = torch.cat([output_itself.detach(),output_1.detach(),output_2.detach(),output_3.detach()],dim= 1).float().reshape(self.batchSize, -1)
+            if o_p == 0:
+                print(critic_actions.size())
             next_states_stack = torch.from_numpy(np.stack(next_states,axis=1)).float().reshape(self.batchSize, -1)
             target_Q_p=self.g_critic_target[agent_index](next_states_stack,critic_actions)
             states_stack = torch.from_numpy(np.stack(states,axis=0)).reshape(self.batchSize, -1).float()
-            probs_stack= torch.stack((torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
-            probs_stack_update= torch.stack((torch.stack(probs[0]),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach())).reshape(self.batchSize, -1).float()
-            
+            probs_stack= torch.cat([torch.stack(probs[0]).detach(),torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach()],dim=1).reshape(self.batchSize, -1).float()
             g_current_Q = self.g_critic[agent_index](states_stack,probs_stack)
             g_target_Q = target_Q_p.detach() * self.Gamma + torch.from_numpy(np.stack(rewards[0],axis=0) * self.scale_reward).unsqueeze_(-1).float()
             g_critic_loss_Q = nn.MSELoss()(g_current_Q, g_target_Q)
@@ -280,27 +278,34 @@ class Maddpg:
             
             
             ###################################################
-
-            g_critic_loss_Q.backward(retain_graph=True)
+            self.g_critic_optimizer[agent_index].zero_grad()
+            g_critic_loss_Q.backward()
             self.g_critic_optimizer[agent_index].step()
             ###################################################
 
             ###################################################
             # update actor policy
             self.g_actor_optimizer[agent_index].zero_grad()
-            g_actor_loss = -self.g_critic[agent_index](states_stack,  probs_stack_update)
-            g_actor_loss =g_actor_loss.mean()
-            g_actor_loss.backward(retain_graph=True)
+            output = self.g_actor[agent_index](torch.from_numpy(np.stack(states[0],axis=0)).float()).clone()
+            probs_stack= torch.cat([output,torch.stack(probs[1]).detach(),torch.stack(probs[2]).detach(),torch.stack(probs[3]).detach()],dim=1).reshape(self.batchSize, -1).float()
+            g_actor_loss = -self.g_critic[agent_index](states_stack,probs_stack)
+            g_actor_loss.mean().backward()
             self.g_actor_optimizer[agent_index].step()
             ###################################################
 
-            writer.add_scalars('goalie_{}'.format(agent_index),{'actor':(g_actor_loss)},step)
+            writer.add_scalars('goalie_{}'.format(agent_index),{'actor':(g_actor_loss.mean())},step)
             del states[:], actions[:], probs[:], rewards[:], next_states[:]
             ###################################################
         # soft update targetNetwork
         if self.steps_done  % self.update_target == 0 and self.steps_done > 0:
             soft_update(self.g_critic_target[agent_index], self.g_critic[agent_index], self.tau)
-            soft_update(self.g_actor_target[agent_index], self.g_actor[agent_index], self.tau)    
+            soft_update(self.g_actor_target[agent_index], self.g_actor[agent_index], self.tau)
+            soft_update(self.s_critic_target[agent_index], self.s_critic[agent_index], self.tau)
+            soft_update(self.s_actor_target[agent_index],  self.s_actor[agent_index], self.tau)  
+            for i in range(3):
+                soft_update(self.g_actor_other_target[agent_index][i], self.g_actor_other[agent_index][i], self.tau)
+                soft_update(self.s_actor_other_target[agent_index][i], self.s_actor_other[agent_index][i], self.tau)  
+                
             
 
 

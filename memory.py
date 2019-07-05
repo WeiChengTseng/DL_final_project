@@ -38,9 +38,9 @@ import numpy as np
 ######################################################
 
 class ReplayBuffer:
-    def __init__(self,field=8, gamma=0.95,capacity=1e6):
+    def __init__(self,field=8, gamma=0.99,capacity=1e6):
         self.field = field
-        self._trags = [Trajetory(2,2) for i in range(field)]
+        self._trags = [Trajetory(2,2,gamma) for i in range(field)]
         self._record = np.zeros(field, dtype=bool)
         self.actions = [[]]*4
         self.states = [[]]*4
@@ -57,17 +57,20 @@ class ReplayBuffer:
         batch_rewards = [[]]*4
         batch_next_states = [[]] *4
         # print("memory",len(self.states[0]))
+        step = 0
         for i in order:
             random.seed(seed)
-            batch_states[i]=random.choices(self.states[i],k=batchSize)
+            batch_states[step]=random.choices(self.states[i],k=batchSize)
             random.seed(seed)
-            batch_actions[i]=random.choices(self.actions[i],k=batchSize)
+            batch_actions[step]=random.choices(self.actions[i],k=batchSize)
             random.seed(seed)
-            batch_probs[i]=random.choices(self.probs[i],k=batchSize)
+            batch_probs[step]=random.choices(self.probs[i],k=batchSize)
             random.seed(seed)
-            batch_rewards[i]=random.choices(self.rewards[i],k=batchSize)
+            batch_rewards[step]=random.choices(self.rewards[i],k=batchSize)
             random.seed(seed)
-            batch_next_states[i]=random.choices(self.next_states[i],k=batchSize)
+            batch_next_states[step]=random.choices(self.next_states[i],k=batchSize)
+            
+            step +=1
         # print("batch",len(batch_states[0]))
         return batch_states, batch_actions, batch_probs, batch_rewards, batch_next_states
 
@@ -79,26 +82,26 @@ class ReplayBuffer:
                 del self.probs[i][:-40960]
                 del self.rewards[i][:-40960]
                 del self.next_states[i][:-40960]
+               
         return
     
     
-    def update_transition(self, state_s, state_g, action_s,action_g, prob_s,prob_g, reward_s,reward_g, done,next_state_s,next_state_g):
+    def update_transition(self, state_s, state_g, action_s,action_g,  prob_s,prob_g, reward_s,reward_g, done,next_state_s,next_state_g):
         # not modify
+        # print("state_s.shape: ",state_s.shape)
         for i in range(0,self.field):
             if i in np.argwhere(done == False).flatten():
                 self._trags[i].push_transition('str',state_s[i*2:(i+1)*2], action_s[i*2:(i+1)*2],prob_s[i*2:(i+1)*2], reward_s[i*2:(i+1)*2], next_state_s[i*2:(i+1)*2])
-                self._trags[i].push_transition('goalie',state_g[i*2:(i+1)*2], action_g[i*2:(i+1)*2],prob_g[i*2:(i+1)*2], reward_g[i*2:(i+1)*2], next_state_g[i*2:(i+1)*2])
+                self._trags[i].push_transition('goalie',state_g[i*2:(i+1)*2], action_g[i*2:(i+1)*2], prob_g[i*2:(i+1)*2], reward_g[i*2:(i+1)*2], next_state_g[i*2:(i+1)*2])
         return
     
     def update_rewards(self,done):
         for i in (np.argwhere(done == True).flatten()):
             if i is []:
                 break
-            # print("self_record", self._record)
             if i in np.argwhere(self._record == False).flatten():
-                # print(i)
                 s, p, a, r ,ns = self._trags[i].done()
-                # print("len_s",len(s[0]))
+
                 
                 for j in range(4):
                     if len(self.states[j]) == 0:
@@ -121,15 +124,17 @@ class ReplayBuffer:
 
 
 class Trajetory:
-    def __init__(self,red_actor=2,blue_actor=2):
+    def __init__(self,red_actor=2,blue_actor=2,gamma=0.99):
         self.red_actor  = red_actor
         self.blue_actor = blue_actor
+        self._gamma = gamma
         self._next_state = [[]]*(int(red_actor)+int(blue_actor))
         self._state = [[]]*(int(red_actor)+int(blue_actor))
         self._action = [[]]*(int(red_actor)+int(blue_actor))
         self._prob = [[]]*(int(red_actor)+int(blue_actor))
         self._reward = [[]]*(int(red_actor)+int(blue_actor))
-        self.record = False
+        self._acc_reward = [[]]*(int(red_actor)+int(blue_actor))
+        self._real_distr = [[]]*(int(red_actor)+int(blue_actor))
         
         return
 
@@ -146,6 +151,7 @@ class Trajetory:
                 self._prob[1] = [prob[1]]
                 self._reward[1] = [reward[1]]
                 self._next_state[1] = [next_state[1]]
+
             else:
                 self._state[0].append(state[0])
                 self._action[0].append(action[0])
@@ -157,6 +163,7 @@ class Trajetory:
                 self._prob[1].append(prob[1])
                 self._reward[1].append(reward[1])
                 self._next_state[1].append(next_state[1])
+
         if mode == "goalie":
             if len(self._state[2]) == 0:
                 self._state[2] = [state[0]]
@@ -183,7 +190,14 @@ class Trajetory:
         return
 
     def done(self):
-        return self._state, self._prob, self._action, self._reward, self._next_state
+        for i in range(4):
+            discounted_reward = 0
+            for reward in reversed(self._reward[i]):
+                discounted_reward = reward + (self._gamma * discounted_reward)
+                if len(self._acc_reward[i]) == 0:
+                    self._acc_reward[i] = [discounted_reward]
+                self._acc_reward[i].insert(0, discounted_reward)
+        return self._state, self._prob, self._action, self._acc_reward, self._next_state
 
     def clear(self):
         for i in range(self.red_actor+self.blue_actor):
@@ -191,6 +205,7 @@ class Trajetory:
             del self._state[i][:]
             del self._prob[i][:]
             del self._reward[i][:]
+            del self._acc_reward[i][:]
         return
         
         
