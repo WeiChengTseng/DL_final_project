@@ -54,6 +54,14 @@ if __name__ == "__main__":
         "--capacity", type=int, default=1e5, help="capacity")
     opt = parser.parse_args()
 
+    device = None
+    if torch.cuda.is_available():
+        device = torch.device('cuda:0')
+        print("here")
+    else:
+        device = torch.device('cpu')
+    
+
     #initialize
     episode = 0
     order = 'field'
